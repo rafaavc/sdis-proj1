@@ -11,5 +11,3 @@ COPY . .
 RUN javac Peer.java
 
 CMD [ "java", "Peer" ]
-
-

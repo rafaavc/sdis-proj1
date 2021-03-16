@@ -8,5 +8,5 @@ services:
     depends_on: [ rmi ]
     build: "peer/"
     ports:
-      - "9001-9005:80"
-    scale: 5
+      - "9001-9015:80"
+    scale: 15
