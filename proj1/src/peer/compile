@@ -1,0 +1,5 @@
+#!/bin/sh
+cd exceptions
+javac *.java
+cd ..
+javac *.java
