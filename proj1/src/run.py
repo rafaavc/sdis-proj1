@@ -1,4 +1,6 @@
-import argparse, os, signal, subprocess, psutil
+import argparse, os, signal, subprocess, psutil, sys, time
+from colorama import Fore, Back, Style
+from threading import Thread
 
 parser = argparse.ArgumentParser()
 
@@ -46,46 +48,92 @@ def compile_peers():
         print(out.stderr.decode('ASCII'))
     return out.returncode == 0
 
-def run_peer(id):
-    os.execvp("java", ["java", "Peer", str(id)])
+peersColors = [ Fore.RED, Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.MAGENTA, Fore.YELLOW, Fore.WHITE ]
+
+class PrintPeerStdout(Thread):
+    def __init__(self, proc):
+        Thread.__init__(self)
+        self.running = True
+        self.proc = proc
+
+    def run(self):
+        while self.running:
+            text = os.read(self.proc['pipeRFD'], 512).decode('ASCII')
+            if (len(text) != 0):
+                print(peersColors[self.proc['peerId'] % len(peersColors)], end="")
+                print("peer" + str(self.proc['peerId']) + ": ", end="")
+                print(Fore.RESET, end="")
+                print(text)
+                time.sleep(.1)
+
+    def stop(self):
+        self.running = False
+
+
+def run_peer(peerId):
+    os.execvp("java", ["java", "Peer", str(peerId)])
 
 def start_peers():
     os.chdir("peer")
     processes = []
     for i in range(args.n):
+        r, w = os.pipe()
         newpid = os.fork()
-        if newpid == 0:
+        if newpid == 0:  # peer
+            os.close(r)
+            os.dup2(w, sys.stdout.fileno())  # stdout will be the pipe
             run_peer(i)
-        else:
-            processes.append(newpid)
+        else:  # parent
+            os.close(w)
+            processes.append({
+                'peerId': i,
+                'pid': newpid,
+                'pipeRFD': r
+            })
     os.chdir("..")
-    print("Created processes: " + str(processes))
+    print("\nCreated processes: \n" + str(processes), end="\n\n")
+    for proc in processes:
+        thread = PrintPeerStdout(proc)
+        proc['thread'] = thread
+        thread.start()
     return processes
 
 def close_processes(processes):
-    for pid in processes:
-        if not psutil.pid_exists(pid):
-            print("PID " + str(pid) + " not found.")
+    for proc in processes:
+        if not psutil.pid_exists(proc['pid']):
+            print("PID " + str(proc['pid']) + " not found.")
             continue
-        os.kill(pid, signal.SIGTERM)
+        proc['thread'].stop()
+        os.close(proc['pipeRFD'])
+        os.kill(proc['pid'], signal.SIGTERM)
         os.wait()
 
 
-try:
-    pollForChanges()
-    if not compile_peers(): exit()
+
+rmipid = os.fork()
+if (rmipid == 0):
+    os.chdir('peer')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    os.execvp("rmiregistry", ["rmiregistry"])
+
+
+time.sleep(1)
+
+pollForChanges()
+if not compile_peers(): exit()
+running = True
+
+while running:
+    processes = start_peers()
     while True:
-        processes = start_peers()
-        while True:
-            input()
-            # for k in files.keys():
-            #     print(str(k) + ": " + str(files[k]))
-            if (pollForChanges()): 
-                print("Found Changes")
-                if (compile_peers()): # improvement: only compile the files that were changed
-                    break
-        
-        close_processes(processes)
-except KeyboardInterrupt:
-    print("Exiting gracefully.")
-    #close_processes(processes)
+        text = input()
+        if (text.strip() == "exit"):
+            running = False
+            break
+
+        if (pollForChanges()): 
+            print("Found Changes")
+            if (compile_peers()): # improvement: only compile the files that were changed
+                break
+    
+    close_processes(processes)
+    if not running: os.kill(rmipid, signal.SIGTERM)
