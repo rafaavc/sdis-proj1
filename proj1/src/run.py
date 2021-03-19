@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 files = {}
 
-def pollForChanges(directory='peer'):
+def pollForChanges(directory='.'):
     changed = False
     # print("Looking in directory: " + directory)
     for filename in os.listdir(directory):
@@ -43,9 +43,7 @@ def pollForChanges(directory='peer'):
 
 def compile_peers():
     print("Compiling...")
-    os.chdir("peer")
-    out = subprocess.run(["./compile"], stdout=PIPE, stderr=PIPE)
-    os.chdir("..")
+    out = subprocess.run(["./compile.sh"], stdout=PIPE, stderr=PIPE)
     if (out.returncode == 0):
         print("SUCCESS")
     else:
@@ -98,10 +96,9 @@ class PrintPeerStdout(Thread):
 
 
 def run_peer(peerId):
-    os.execvp("java", ["java", "Peer", "1.0", str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
+    os.execvp("./peer.sh", ["./peer.sh", "1.0", str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
 
 def start_peers():
-    os.chdir("peer/gen")
     processes = []
     for i in range(args.n):
         r, w = os.pipe()
@@ -117,11 +114,11 @@ def start_peers():
                 'pid': newpid,
                 'pipeRFD': r
             })
-    os.chdir("..")
-    print("\nCreated processes: \n" + str(processes), end="\n\n")
+    # print("\nCreated processes: \n" + str(processes), end="\n\n")
     lock = Lock()
     for proc in processes:
         thread = PrintPeerStdout(proc, lock)
+        thread.setDaemon(True)
         proc['thread'] = thread
         thread.start()
     return processes
@@ -141,7 +138,7 @@ def close_processes(processes):
 
 rmipid = os.fork()
 if (rmipid == 0):
-    os.chdir('peer/gen')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    os.chdir('gen')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
     print("Starting RMI...")
     os.execvp("rmiregistry", ["rmiregistry"])
 

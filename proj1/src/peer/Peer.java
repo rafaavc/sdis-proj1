@@ -15,11 +15,13 @@ import actions.RestorePacketAction;
 import exceptions.CLArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
+import files.Chunk;
+import files.FileManager;
 
 public class Peer {
     private final PeerConfiguration configuration;
     private final Client client;
-    private final List<ChannelListener> channels = new ArrayList<>();
+    private final List<ChannelListener> channelListeners = new ArrayList<>();
 
     public static PeerConfiguration parseArgs(String args[]) throws CLArgsException, NumberFormatException, UnknownHostException {
         if (args.length != 9) throw new CLArgsException(CLArgsException.Type.ARGS_LENGTH);
@@ -42,7 +44,7 @@ public class Peer {
         registry.rebind(configuration.getServiceAccessPoint(), (Remote) client);
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
-            public void run() { 
+            public void run() {
                 System.out.println("Unbinding from registry..."); 
                 try {
                     registry.unbind(configuration.getServiceAccessPoint());
@@ -62,11 +64,15 @@ public class Peer {
         this.client = client;
 
         for (MulticastChannel channel : configuration.getChannels()) {
-            this.channels.add(new ChannelListener(channel));
+            this.channelListeners.add(new ChannelListener(channel));
         }
     }
 
-    public void start() {
-        this.channels.forEach((ChannelListener channel) -> channel.start());
+    public void start() throws IOException, ChunkSizeExceeded, InvalidChunkNo {
+        this.channelListeners.forEach((ChannelListener channel) -> channel.start());
+
+        FileManager fileManager = new FileManager(configuration.getServiceAccessPoint());
+        List<Byte> data = fileManager.read("testFile");
+        System.out.println(Chunk.getChunks("aaa", data));
     }
 }

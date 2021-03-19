@@ -4,6 +4,6 @@ import java.net.DatagramPacket;
 
 public class BackupPacketAction implements Action {
     public void execute(DatagramPacket packet) {
-        System.out.println("Received a ControlPacketAction!" + packet.getData().toString());
+        System.out.println("Received a BackupPacketAction! " + packet.getData().toString());
     }
 }
