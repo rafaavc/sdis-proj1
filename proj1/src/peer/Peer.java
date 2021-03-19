@@ -33,13 +33,13 @@ public class Peer implements ClientInterface, Serializable {
         Peer peer = new Peer(configuration);
 
         Registry registry = LocateRegistry.getRegistry();
-        registry.rebind("peer" + args[0], (Remote) peer);
+        registry.rebind(configuration.getServiceAccessPoint(), (Remote) peer);
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() { 
                 System.out.println("Unbinding from registry..."); 
                 try {
-                    registry.unbind("peer" + args[0]);
+                    registry.unbind(configuration.getServiceAccessPoint());
                     System.out.println("Unbound successfully."); 
                 } catch (RemoteException | NotBoundException e) {
                     System.err.println("Error unbinding.");

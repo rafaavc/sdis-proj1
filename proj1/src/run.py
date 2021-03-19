@@ -1,6 +1,7 @@
 import argparse, os, signal, subprocess, psutil, sys, time
 from colorama import Fore, Back, Style
 from threading import Thread, Lock
+from subprocess import PIPE
 
 parser = argparse.ArgumentParser()
 
@@ -40,7 +41,7 @@ def pollForChanges(directory='peer'):
 def compile_peers():
     print("Compiling...")
     os.chdir("peer")
-    out = subprocess.run(["./compile"], capture_output=True)
+    out = subprocess.run(["./compile"], stdout=PIPE, stderr=PIPE)
     os.chdir("..")
     if (out.returncode == 0):
         print("SUCCESS")
