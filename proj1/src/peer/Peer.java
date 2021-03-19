@@ -59,11 +59,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
         for (MulticastChannel channel : this.configuration.getChannels()) {
             new ChannelListener(channel).start();
-
-            // FileManager fileManager = new FileManager(configuration.getServiceAccessPoint());
-            // List<Byte> data = fileManager.read("testFile");
-            // System.out.println(Chunk.getChunks("aaa", data));
         }
+
+        System.out.println("Ready!");
+
+        // FileManager fileManager = new FileManager(configuration.getServiceAccessPoint());
+        // List<Byte> data = fileManager.read("testFile");
+        // System.out.println(Chunk.getChunks("aaa", data));
     }
 
     public void hi() throws RemoteException {
@@ -73,9 +75,9 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public void testMulticast() throws RemoteException {
         try {
             MulticastSocket socket = new MulticastSocket();
-            
+
             byte[] rbuf = "Hey guys!".getBytes();
-            DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length, this.configuration.getMC().getHost(), this.configuration.getMC().getPort());
+            DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length, this.configuration.getMDR().getHost(), this.configuration.getMDR().getPort());
 
             socket.send(packet);
 

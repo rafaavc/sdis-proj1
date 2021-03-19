@@ -11,7 +11,6 @@ public class ChannelListener extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Listening on channel " + channel.toString());
         try {
             MulticastSocket socket = (MulticastSocket) new MulticastSocket(channel.getPort());
             socket.joinGroup(channel.getHost());

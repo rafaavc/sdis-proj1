@@ -45,7 +45,7 @@ def compile_peers():
     print("Compiling...")
     out = subprocess.run(["./compile.sh"], stdout=PIPE, stderr=PIPE)
     if (out.returncode == 0):
-        print("SUCCESS")
+        print("SUCCESS\n")
     else:
         print(out.stderr.decode("ASCII"))
     return out.returncode == 0
@@ -137,6 +137,9 @@ def close_processes(processes):
         os.wait()
 
 
+def printTips():
+    print("Insert 'exit' to close the service. Press ENTER to check for changes and recompile.\n")
+
 
 rmipid = os.fork()
 if (rmipid == 0):
@@ -151,8 +154,11 @@ pollForChanges()
 if not compile_peers(): exit()
 running = True
 
+printTips()
+
 while running:
     processes = start_peers()
+
     while True:
         text = input()
         if (text.strip() == "exit"):
