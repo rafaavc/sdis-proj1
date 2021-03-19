@@ -5,13 +5,13 @@ from subprocess import PIPE
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-n', dest='n', default=5, type=int)
+parser.add_argument("-n", dest="n", default=5, type=int)
 
 args = parser.parse_args()
 
 files = {}
 
-def pollForChanges(directory='.'):
+def pollForChanges(directory="."):
     changed = False
     # print("Looking in directory: " + directory)
     for filename in os.listdir(directory):
@@ -24,20 +24,20 @@ def pollForChanges(directory='.'):
             if (dirChanged): changed = True
             continue
 
-        if extension != '.java': continue     # if not .java file
+        if extension != ".java": continue     # if not .java file
 
         fstat = os.stat(itemPath)
         stamp = fstat.st_mtime
         inode = fstat.st_ino
         # need to check also if a file that existed in the files dict no longer exists
         try:
-            if files[inode]['stamp'] != stamp:
+            if files[inode]["stamp"] != stamp:
                 changed = True
-                files[inode] = { 'stamp': stamp, 'name': filename }
+                files[inode] = { "stamp": stamp, "name": filename }
             
         except KeyError:
             changed = True
-            files[inode] = { 'stamp': stamp, 'name': filename }
+            files[inode] = { "stamp": stamp, "name": filename }
 
     return changed
 
@@ -47,7 +47,7 @@ def compile_peers():
     if (out.returncode == 0):
         print("SUCCESS")
     else:
-        print(out.stderr.decode('ASCII'))
+        print(out.stderr.decode("ASCII"))
     return out.returncode == 0
 
 peersColors = [ Fore.RED, Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.MAGENTA, Fore.YELLOW, Fore.WHITE ]
@@ -62,12 +62,12 @@ class PrintPeerStdout(Thread):
     def run(self):
         time.sleep(.5)
         while self.running:
-            text = os.read(self.proc['pipeRFD'], 1024).decode('ASCII')
+            text = os.read(self.proc["pipeRFD"], 1024).decode("ASCII")
             if (len(text) != 0):
-                name = "peer" + str(self.proc['peerId'])
-                color = peersColors[self.proc['peerId'] % len(peersColors)]
+                name = "peer" + str(self.proc["peerId"])
+                color = peersColors[self.proc["peerId"] % len(peersColors)]
 
-                self.lock.acquire() # so that they don't interrupt each other
+                self.lock.acquire() # so that they don"t interrupt each other
 
                 print(color, end="")
                 print(name + ": ", end="")
@@ -96,9 +96,10 @@ class PrintPeerStdout(Thread):
 
 
 def run_peer(peerId):
-    os.execvp("./peer.sh", ["./peer.sh", "1.0", str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
+    os.execvp("java", ["java", "-cp", "../gen", "Peer", "1.0", str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
 
 def start_peers():
+    os.chdir("filesystem")
     processes = []
     for i in range(args.n):
         r, w = os.pipe()
@@ -110,27 +111,28 @@ def start_peers():
         else:  # parent
             os.close(w)
             processes.append({
-                'peerId': i,
-                'pid': newpid,
-                'pipeRFD': r
+                "peerId": i,
+                "pid": newpid,
+                "pipeRFD": r
             })
     # print("\nCreated processes: \n" + str(processes), end="\n\n")
+    os.chdir("..")
     lock = Lock()
     for proc in processes:
         thread = PrintPeerStdout(proc, lock)
         thread.setDaemon(True)
-        proc['thread'] = thread
+        proc["thread"] = thread
         thread.start()
     return processes
 
 def close_processes(processes):
     for proc in processes:
-        if not psutil.pid_exists(proc['pid']):
-            print("PID " + str(proc['pid']) + " not found.")
+        if not psutil.pid_exists(proc["pid"]):
+            print("PID " + str(proc["pid"]) + " not found.")
             continue
-        proc['thread'].stop()
-        os.close(proc['pipeRFD'])
-        os.kill(proc['pid'], signal.SIGTERM)
+        proc["thread"].stop()
+        os.close(proc["pipeRFD"])
+        os.kill(proc["pid"], signal.SIGTERM)
     for _i in processes:
         os.wait()
 
@@ -138,7 +140,7 @@ def close_processes(processes):
 
 rmipid = os.fork()
 if (rmipid == 0):
-    os.chdir('gen')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    os.chdir("gen")  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
     print("Starting RMI...")
     os.execvp("rmiregistry", ["rmiregistry"])
 
