@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -6,22 +8,17 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.rmi.server.UnicastRemoteObject;
 import actions.BackupPacketAction;
 import actions.ControlPacketAction;
 import actions.RestorePacketAction;
 import exceptions.CLArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
-import files.Chunk;
-import files.FileManager;
 
-public class Peer {
+public class Peer extends UnicastRemoteObject implements ClientInterface {
+    private static final long serialVersionUID = 5157944159616018684L;
     private final PeerConfiguration configuration;
-    private final Client client;
-    private final List<ChannelListener> channelListeners = new ArrayList<>();
 
     public static PeerConfiguration parseArgs(String args[]) throws CLArgsException, NumberFormatException, UnknownHostException {
         if (args.length != 9) throw new CLArgsException(CLArgsException.Type.ARGS_LENGTH);
@@ -38,10 +35,10 @@ public class Peer {
     } 
     public static void main(String[] args) throws RemoteException, NotBoundException, IOException, ChunkSizeExceeded, InvalidChunkNo, InterruptedException, AlreadyBoundException, CLArgsException {
         PeerConfiguration configuration = parseArgs(args);
-        Client client = new Client();        
+        Peer peer = new Peer(configuration);
 
         Registry registry = LocateRegistry.getRegistry();
-        registry.rebind(configuration.getServiceAccessPoint(), (Remote) client);
+        registry.rebind(configuration.getServiceAccessPoint(), (Remote) peer);
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() {
@@ -55,24 +52,37 @@ public class Peer {
             } 
         }); 
 
-        Peer peer = new Peer(configuration, client);
-        peer.start();
     }
 
-    public Peer(PeerConfiguration configuration, Client client) {
+    public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo {
         this.configuration = configuration;
-        this.client = client;
 
-        for (MulticastChannel channel : configuration.getChannels()) {
-            this.channelListeners.add(new ChannelListener(channel));
+        for (MulticastChannel channel : this.configuration.getChannels()) {
+            new ChannelListener(channel).start();
+
+            // FileManager fileManager = new FileManager(configuration.getServiceAccessPoint());
+            // List<Byte> data = fileManager.read("testFile");
+            // System.out.println(Chunk.getChunks("aaa", data));
         }
     }
 
-    public void start() throws IOException, ChunkSizeExceeded, InvalidChunkNo {
-        this.channelListeners.forEach((ChannelListener channel) -> channel.start());
+    public void hi() throws RemoteException {
+        System.out.println("Hi");
+    }
 
-        FileManager fileManager = new FileManager(configuration.getServiceAccessPoint());
-        List<Byte> data = fileManager.read("testFile");
-        System.out.println(Chunk.getChunks("aaa", data));
+    public void testMulticast() throws RemoteException {
+        try {
+            MulticastSocket socket = new MulticastSocket();
+            
+            byte[] rbuf = "Hey guys!".getBytes();
+            DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length, this.configuration.getMC().getHost(), this.configuration.getMC().getPort());
+
+            socket.send(packet);
+
+            socket.close();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
     }
 }

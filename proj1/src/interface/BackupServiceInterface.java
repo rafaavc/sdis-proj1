@@ -6,13 +6,23 @@ import java.rmi.registry.Registry;
 
 public class BackupServiceInterface {
     public static void main(String[] args) throws AccessException, RemoteException, NotBoundException {
-        if (args.length != 1) {
-            System.err.println("I need the peer's rmi registry name.");
+        if (args.length != 2) {
+            System.err.println("I need the peer's rmi registry name and the method to invoke.");
             System.exit(1);
         }
 
         Registry registry = LocateRegistry.getRegistry();
         ClientInterface stub = (ClientInterface) registry.lookup(args[0]);
-        stub.hi();
+
+        switch(args[1]) {
+            case "hi":
+                stub.hi();
+                break;
+            case "testMulticast":
+                stub.testMulticast();
+                break;
+            default:
+                break;
+        }
     }
 }

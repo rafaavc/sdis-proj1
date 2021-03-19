@@ -1,12 +1,14 @@
 public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
-    private final MulticastChannel[] channels;
+    private final MulticastChannel mc, mdb, mdr;
 
     public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
-        this.channels = new MulticastChannel[] { mc, mdb, mdr };
+        this.mc = mc;
+        this.mdb = mdb;
+        this.mdr = mdr;
     }
 
     public String getProtocolVersion() {
@@ -22,6 +24,18 @@ public class PeerConfiguration {
     }
 
     public MulticastChannel[] getChannels() {
-        return channels;
+        return new MulticastChannel[] { this.mc, this.mdb, this.mdr };
+    }
+
+    public MulticastChannel getMC() {
+        return mc;
+    }
+    
+    public MulticastChannel getMDB() {
+        return mdb;
+    }
+
+    public MulticastChannel getMDR() {
+        return mdr;
     }
 }
