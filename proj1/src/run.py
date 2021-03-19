@@ -1,6 +1,6 @@
 import argparse, os, signal, subprocess, psutil, sys, time
 from colorama import Fore, Back, Style
-from threading import Thread
+from threading import Thread, Lock
 
 parser = argparse.ArgumentParser()
 
@@ -51,27 +51,50 @@ def compile_peers():
 peersColors = [ Fore.RED, Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.MAGENTA, Fore.YELLOW, Fore.WHITE ]
 
 class PrintPeerStdout(Thread):
-    def __init__(self, proc):
+    def __init__(self, proc, lock):
         Thread.__init__(self)
         self.running = True
         self.proc = proc
+        self.lock = lock
 
     def run(self):
+        time.sleep(.5)
         while self.running:
-            text = os.read(self.proc['pipeRFD'], 512).decode('ASCII')
+            text = os.read(self.proc['pipeRFD'], 1024).decode('ASCII')
             if (len(text) != 0):
-                print(peersColors[self.proc['peerId'] % len(peersColors)], end="")
-                print("peer" + str(self.proc['peerId']) + ": ", end="")
+                name = "peer" + str(self.proc['peerId'])
+                color = peersColors[self.proc['peerId'] % len(peersColors)]
+
+                self.lock.acquire() # so that they don't interrupt each other
+
+                print(color, end="")
+                print(name + ": ", end="")
                 print(Fore.RESET, end="")
-                print(text)
-                time.sleep(.1)
+
+                lines = text.split("\n")
+                print(lines[0])
+
+                spacer = "-"
+                for n in name: spacer += "-"
+                spacer += " "
+
+                for line in lines[1:]:
+                    if line == "": continue
+                    print(color + spacer + Fore.RESET, end="")
+                    print(line)
+                
+                print()
+
+                self.lock.release()
+
+                time.sleep(.2)
 
     def stop(self):
         self.running = False
 
 
 def run_peer(peerId):
-    os.execvp("java", ["java", "Peer", str(peerId)])
+    os.execvp("java", ["java", "Peer", "1.0", str(peerId), "peer"+str(peerId), "123.123.123.123", "1234", "124.124.124.124", "1234", "125.125.125.125", "1234"])
 
 def start_peers():
     os.chdir("peer")
@@ -92,8 +115,9 @@ def start_peers():
             })
     os.chdir("..")
     print("\nCreated processes: \n" + str(processes), end="\n\n")
+    lock = Lock()
     for proc in processes:
-        thread = PrintPeerStdout(proc)
+        thread = PrintPeerStdout(proc, lock)
         proc['thread'] = thread
         thread.start()
     return processes
@@ -113,6 +137,7 @@ def close_processes(processes):
 rmipid = os.fork()
 if (rmipid == 0):
     os.chdir('peer')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    print("Starting RMI...")
     os.execvp("rmiregistry", ["rmiregistry"])
 
 
