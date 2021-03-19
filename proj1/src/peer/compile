@@ -1,5 +1,5 @@
 #!/bin/sh
-cd exceptions
-javac *.java
-cd ..
-javac *.java
+find -name "*.java" > sources.txt
+mkdir -p gen
+javac -d gen @sources.txt
+rm sources.txt

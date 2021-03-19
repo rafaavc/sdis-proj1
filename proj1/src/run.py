@@ -17,24 +17,27 @@ def pollForChanges(directory='peer'):
     for filename in os.listdir(directory):
         _fn, extension = os.path.splitext(filename)
 
-        if (os.path.isdir(directory + "/" + filename)):   # if other directory
-            changed = pollForChanges(directory + "/" + filename)
+        itemPath = directory + "/" + filename
+
+        if (os.path.isdir(itemPath)):   # if other directory
+            dirChanged = pollForChanges(itemPath)
+            if (dirChanged): changed = True
             continue
 
         if extension != '.java': continue     # if not .java file
 
-        fstat = os.stat(directory+'/'+filename)
+        fstat = os.stat(itemPath)
         stamp = fstat.st_mtime
         inode = fstat.st_ino
         # need to check also if a file that existed in the files dict no longer exists
         try:
-            if files[inode] != stamp:
+            if files[inode]['stamp'] != stamp:
                 changed = True
-                files[inode] = stamp
+                files[inode] = { 'stamp': stamp, 'name': filename }
             
         except KeyError:
             changed = True
-            files[inode] = stamp
+            files[inode] = { 'stamp': stamp, 'name': filename }
 
     return changed
 
@@ -95,10 +98,10 @@ class PrintPeerStdout(Thread):
 
 
 def run_peer(peerId):
-    os.execvp("java", ["java", "Peer", "1.0", str(peerId), "peer"+str(peerId), "123.123.123.123", "1234", "124.124.124.124", "1234", "125.125.125.125", "1234"])
+    os.execvp("java", ["java", "Peer", "1.0", str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
 
 def start_peers():
-    os.chdir("peer")
+    os.chdir("peer/gen")
     processes = []
     for i in range(args.n):
         r, w = os.pipe()
@@ -131,13 +134,14 @@ def close_processes(processes):
         proc['thread'].stop()
         os.close(proc['pipeRFD'])
         os.kill(proc['pid'], signal.SIGTERM)
+    for _i in processes:
         os.wait()
 
 
 
 rmipid = os.fork()
 if (rmipid == 0):
-    os.chdir('peer')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    os.chdir('peer/gen')  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
     print("Starting RMI...")
     os.execvp("rmiregistry", ["rmiregistry"])
 

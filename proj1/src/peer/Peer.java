@@ -1,39 +1,45 @@
 import java.io.IOException;
-import java.io.Serializable;
+import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.List;
 
+import actions.BackupPacketAction;
+import actions.ControlPacketAction;
+import actions.RestorePacketAction;
 import exceptions.CLArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
 
-public class Peer implements ClientInterface, Serializable {
-    private static final long serialVersionUID = -2366152158020082928L;
-    private PeerConfiguration configuration;
+public class Peer {
+    private final PeerConfiguration configuration;
+    private final Client client;
+    private final List<ChannelListener> channels = new ArrayList<>();
 
-    public static PeerConfiguration parseArgs(String args[]) throws CLArgsException {
+    public static PeerConfiguration parseArgs(String args[]) throws CLArgsException, NumberFormatException, UnknownHostException {
         if (args.length != 9) throw new CLArgsException(CLArgsException.Type.ARGS_LENGTH);
 
+        // Need to verify better
         String protocolVersion = args[0];
         String peerId = args[1];
         String serviceAccessPoint = args[2];
-        MulticastChannelName mc = new MulticastChannelName(args[3], Integer.parseInt(args[4]));
-        MulticastChannelName mdb = new MulticastChannelName(args[5], Integer.parseInt(args[6]));
-        MulticastChannelName mdr = new MulticastChannelName(args[7], Integer.parseInt(args[8]));
+        MulticastChannel mc = new MulticastChannel("MC", new ControlPacketAction(), args[3], Integer.parseInt(args[4])); // Multicast control
+        MulticastChannel mdb = new MulticastChannel("MDB", new BackupPacketAction(), args[5], Integer.parseInt(args[6])); // Multicast data backup
+        MulticastChannel mdr = new MulticastChannel("MDR", new RestorePacketAction(), args[7], Integer.parseInt(args[8])); // Multicast data restore
 
         return new PeerConfiguration(protocolVersion, peerId, serviceAccessPoint, mc, mdb, mdr);
-    }
+    } 
     public static void main(String[] args) throws RemoteException, NotBoundException, IOException, ChunkSizeExceeded, InvalidChunkNo, InterruptedException, AlreadyBoundException, CLArgsException {
         PeerConfiguration configuration = parseArgs(args);
-
-        Peer peer = new Peer(configuration);
+        Client client = new Client();        
 
         Registry registry = LocateRegistry.getRegistry();
-        registry.rebind(configuration.getServiceAccessPoint(), (Remote) peer);
+        registry.rebind(configuration.getServiceAccessPoint(), (Remote) client);
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() { 
@@ -42,25 +48,25 @@ public class Peer implements ClientInterface, Serializable {
                     registry.unbind(configuration.getServiceAccessPoint());
                     System.out.println("Unbound successfully."); 
                 } catch (RemoteException | NotBoundException e) {
-                    System.err.println("Error unbinding.");
+                    System.err.println("Error unbinding."); 
                 }
             } 
         }); 
 
-        //FileManager fileManager = new FileManager("test");
-        //List<Byte> data = fileManager.read("testFile");
-        //System.out.println(Chunk.getChunks("id", data));
-        System.out.println("Ready");
-        peer.hi();
-
-        while (true);
+        Peer peer = new Peer(configuration, client);
+        peer.start();
     }
 
-    public Peer(PeerConfiguration configuration) {
+    public Peer(PeerConfiguration configuration, Client client) {
         this.configuration = configuration;
+        this.client = client;
+
+        for (MulticastChannel channel : configuration.getChannels()) {
+            this.channels.add(new ChannelListener(channel));
+        }
     }
 
-    public void hi() throws RemoteException {
-        System.out.println("Hi from peer" + this.configuration.getPeerId());
+    public void start() {
+        this.channels.forEach((ChannelListener channel) -> channel.start());
     }
 }

@@ -1,18 +1,12 @@
-import java.io.Serializable;
-import java.rmi.Remote;
-
-public class PeerConfiguration implements Serializable, Remote {
-    private static final long serialVersionUID = 7686282043870935656L;
+public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
-    private final MulticastChannelName mc, mdb, mdr;
+    private final MulticastChannel[] channels;
 
-    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannelName mc, MulticastChannelName mdb, MulticastChannelName mdr) {
+    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
-        this.mc = mc;
-        this.mdb = mdb;
-        this.mdr = mdr;
+        this.channels = new MulticastChannel[] { mc, mdb, mdr };
     }
 
     public String getProtocolVersion() {
@@ -27,15 +21,7 @@ public class PeerConfiguration implements Serializable, Remote {
         return serviceAccessPoint;
     }
 
-    public MulticastChannelName getMC() {
-        return mc;
-    }
-
-    public MulticastChannelName getMDB() {
-        return mdb;
-    }
-
-    public MulticastChannelName getMDR() {
-        return mdr;
+    public MulticastChannel[] getChannels() {
+        return channels;
     }
 }
