@@ -1,3 +1,7 @@
+package configuration;
+
+import channels.MulticastChannel;
+
 public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
     private final MulticastChannel mc, mdb, mdr;

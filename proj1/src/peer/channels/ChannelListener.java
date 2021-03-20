@@ -1,18 +1,26 @@
+package channels;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.net.SocketException;
+
+import channels.actions.Action;
 
 public class ChannelListener extends Thread {
     private final MulticastChannel channel;
+    private final Action action;
 
-    public ChannelListener(MulticastChannel channel) {
+    public ChannelListener(MulticastChannel channel, Action action) {
         this.channel = channel;
+        this.action = action;
     }
 
     @Override
     public void run() {
+        MulticastSocket socket = channel.getSocket();
+        
         try {
-            MulticastSocket socket = (MulticastSocket) new MulticastSocket(channel.getPort());
             socket.joinGroup(channel.getHost());
 
             while (true) {
@@ -21,11 +29,12 @@ public class ChannelListener extends Thread {
 
                 socket.receive(packet);
 
-                this.channel.getAction().execute(packet);
-            } 
-
+                this.action.execute(packet);
+            }
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            if (!(e instanceof SocketException)) {
+                System.err.println("IOException in ChannelListener of channel " + this.channel + ": " + e.getMessage());
+            }
         }
     }
 }

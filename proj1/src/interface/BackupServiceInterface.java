@@ -4,6 +4,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
+import configuration.ClientInterface;
+
 public class BackupServiceInterface {
     public static void main(String[] args) throws AccessException, RemoteException, NotBoundException {
         if (args.length != 2) {
