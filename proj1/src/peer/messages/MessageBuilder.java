@@ -21,7 +21,7 @@ public class MessageBuilder {
         REMOVED
     }
 
-    private static final HashMap<MessageType, String> messages = new HashMap<>();
+    public static final HashMap<MessageType, String> messages = new HashMap<>();
 
     static {
         messages.put(MessageType.PUTCHUNK, "PUTCHUNK");

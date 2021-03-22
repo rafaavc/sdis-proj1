@@ -35,11 +35,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             for (Chunk chunk : file.getChunks()) {
                 byte[] msg = factory.getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), replicationDegree, chunk.getChunkNo(), chunk.getData());
                 this.configuration.getMDB().send(msg);
+                //while(x<5){while(respostas<replicationDegree) {send;delay=delay*2
             }
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }
     }
+
 
     public void hi() throws RemoteException {
         System.out.println("Hi");

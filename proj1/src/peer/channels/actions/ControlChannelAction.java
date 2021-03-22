@@ -10,6 +10,7 @@ public class ControlChannelAction extends Action {
     }
 
     public void execute(DatagramPacket packet) {
+        // Replies to putchunk
         System.out.println("Received a ControlPacketAction: " + new String(packet.getData()).trim());
     }
 }

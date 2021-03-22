@@ -24,7 +24,7 @@ public class ChannelListener extends Thread {
             socket.joinGroup(channel.getHost());
 
             while (true) {
-                byte[] rbuf = new byte[65000];
+                byte[] rbuf = new byte[500];
                 DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length);
 
                 socket.receive(packet);

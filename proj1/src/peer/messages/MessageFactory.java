@@ -18,13 +18,14 @@ public class MessageFactory {
 
     public byte[] getPutchunkMessage(String senderId, String fileId, int replicationDeg, int chunkNo, byte[] body) throws ArgsException {
         MessageBuilder builder = new MessageBuilder();
-        builder.addVersion(versionN, versionM);
-        builder.addMessageType(MessageType.PUTCHUNK);
-        builder.addSenderId(senderId);
-        builder.addSenderId(fileId);
-        builder.addChunkNo(String.valueOf(chunkNo));
-        builder.addReplicationDeg((short) replicationDeg);
-        builder.addBody(body);
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.PUTCHUNK)
+            .addSenderId(senderId)
+            .addSenderId(fileId)
+            .addChunkNo(String.valueOf(chunkNo))
+            .addReplicationDeg((short) replicationDeg)
+            .addBody(body);
         return builder.getMessage();
     }
 }
