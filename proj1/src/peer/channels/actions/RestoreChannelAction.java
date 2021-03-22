@@ -10,6 +10,6 @@ public class RestoreChannelAction extends Action {
     }
 
     public void execute(DatagramPacket packet) {
-        System.out.println("Received a RestorePacketAction: " + new String(packet.getData()));
+        System.out.println("Received a RestorePacketAction: " + new String(packet.getData()).trim());
     }
 }

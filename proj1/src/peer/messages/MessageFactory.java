@@ -16,12 +16,13 @@ public class MessageFactory {
         this.versionM = (short) versionM;
     }
 
-    public byte[] getPutchunkMessage(String senderId, String fileId, int replicationDeg, byte[] body) throws ArgsException {
+    public byte[] getPutchunkMessage(String senderId, String fileId, int replicationDeg, int chunkNo, byte[] body) throws ArgsException {
         MessageBuilder builder = new MessageBuilder();
         builder.addVersion(versionN, versionM);
         builder.addMessageType(MessageType.PUTCHUNK);
         builder.addSenderId(senderId);
-        builder.addChunkNo(fileId);
+        builder.addSenderId(fileId);
+        builder.addChunkNo(String.valueOf(chunkNo));
         builder.addReplicationDeg((short) replicationDeg);
         builder.addBody(body);
         return builder.getMessage();

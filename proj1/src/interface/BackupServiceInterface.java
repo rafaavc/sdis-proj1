@@ -24,7 +24,7 @@ public class BackupServiceInterface {
                 stub.testMulticast();
                 break;
             case "backup": 
-                stub.backup("someFilePath", 3);
+                stub.backup("testFile1", 3);
             default:
                 break;
         }

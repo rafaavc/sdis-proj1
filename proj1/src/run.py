@@ -47,7 +47,7 @@ def compile_peers():
     if (out.returncode == 0):
         print("SUCCESS\n")
     else:
-        print(out.stderr.decode("ASCII"))
+        print(out.stderr.decode("UTF-8"))
     return out.returncode == 0
 
 peersColors = [ Fore.RED, Fore.BLUE, Fore.CYAN, Fore.GREEN, Fore.MAGENTA, Fore.YELLOW, Fore.WHITE ]
@@ -62,7 +62,7 @@ class PrintPeerStdout(Thread):
     def run(self):
         time.sleep(.5)
         while self.running:
-            text = os.read(self.proc["pipeRFD"], 1024).decode("ASCII")
+            text = os.read(self.proc["pipeRFD"], 1024).decode("UTF-8")
             if (len(text) != 0):
                 name = "peer" + str(self.proc["peerId"])
                 color = peersColors[self.proc["peerId"] % len(peersColors)]

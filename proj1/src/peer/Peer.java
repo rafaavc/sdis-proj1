@@ -10,6 +10,8 @@ import configuration.PeerConfiguration;
 import exceptions.ArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
+import files.Chunk;
+import files.File;
 import messages.MessageFactory;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
@@ -28,10 +30,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
     public void backup(String filePath, int replicationDegree) throws RemoteException {
         try {
+            File file = new File(filePath);
             MessageFactory factory = new MessageFactory(1, 0);
-            byte[] msg = factory.getPutchunkMessage(this.configuration.getPeerId(), "fileId", replicationDegree, "Testing".getBytes());
-            this.configuration.getMDB().send(msg);
-        } catch(ArgsException | IOException e) {
+            for (Chunk chunk : file.getChunks()) {
+                byte[] msg = factory.getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), replicationDegree, chunk.getChunkNo(), chunk.getData());
+                this.configuration.getMDB().send(msg);
+            }
+        } catch(Exception e) {
             System.err.println(e.getMessage());
         }
     }

@@ -10,6 +10,6 @@ public class BackupChannelAction extends Action {
     }
 
     public void execute(DatagramPacket packet) {
-        System.out.println("Received a BackupPacketAction: " + new String(packet.getData()));
+        System.out.println("Received a BackupPacketAction: " + new String(packet.getData()).trim());
     }
 }

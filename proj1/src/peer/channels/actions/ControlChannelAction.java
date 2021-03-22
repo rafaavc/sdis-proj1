@@ -10,6 +10,6 @@ public class ControlChannelAction extends Action {
     }
 
     public void execute(DatagramPacket packet) {
-        System.out.println("Received a ControlPacketAction: " + new String(packet.getData()));
+        System.out.println("Received a ControlPacketAction: " + new String(packet.getData()).trim());
     }
 }
