@@ -12,14 +12,13 @@ import channels.actions.RestoreChannelAction;
 import channels.ChannelListener;
 import channels.MulticastChannel;
 import channels.MulticastChannel.ChannelType;
-import configuration.Peer;
 import configuration.PeerConfiguration;
-import exceptions.CLArgsException;
+import exceptions.ArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
 
 public class Main {
-    public static void main(String[] args) throws RemoteException, NotBoundException, IOException, ChunkSizeExceeded, InvalidChunkNo, InterruptedException, AlreadyBoundException, CLArgsException {
+    public static void main(String[] args) throws RemoteException, NotBoundException, IOException, ChunkSizeExceeded, InvalidChunkNo, InterruptedException, AlreadyBoundException, ArgsException {
         PeerConfiguration configuration = parseArgs(args);
         Peer peer = new Peer(configuration);
 
@@ -42,8 +41,8 @@ public class Main {
         });
     }
 
-    public static PeerConfiguration parseArgs(String args[]) throws CLArgsException, NumberFormatException, IOException {
-        if (args.length != 9) throw new CLArgsException(CLArgsException.Type.ARGS_LENGTH);
+    public static PeerConfiguration parseArgs(String args[]) throws ArgsException, NumberFormatException, IOException {
+        if (args.length != 9) throw new ArgsException(ArgsException.Type.ARGS_LENGTH);
 
         // Need to verify better
         String protocolVersion = args[0];
