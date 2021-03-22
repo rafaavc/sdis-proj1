@@ -35,11 +35,11 @@ public class File {
     }
 
     public File(String path) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ArgsException, NoSuchAlgorithmException {
-        this.data = FileManager.read(path);
-
         java.io.File f = new java.io.File(path);
 
         if (!f.exists()) throw new ArgsException(Type.FILE_DOESNT_EXIST, path);
+
+        this.data = FileManager.read(path);
 
         this.fileId = File.getFileId(f);
 
