@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.SocketException;
-
+import messages.Message;
+import messages.MessageParser;
 import channels.actions.Action;
 
 public class ChannelListener extends Thread {
@@ -29,7 +30,13 @@ public class ChannelListener extends Thread {
 
                 socket.receive(packet);
 
-                this.action.execute(packet);
+                byte[] data = packet.getData();
+                Message msg = MessageParser.parse(data);
+
+                if (msg.getSenderId().equals(this.action.getConfiguration().getPeerId())) System.out.println("Received own message");
+                else {
+                    this.action.execute(msg);
+                }
             }
         } catch (IOException e) {
             if (!(e instanceof SocketException)) {

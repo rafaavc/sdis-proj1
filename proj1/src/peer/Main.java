@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.nio.channels.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -14,11 +13,9 @@ import channels.MulticastChannel;
 import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
 import exceptions.ArgsException;
-import exceptions.ChunkSizeExceeded;
-import exceptions.InvalidChunkNo;
 
 public class Main {
-    public static void main(String[] args) throws RemoteException, NotBoundException, IOException, ChunkSizeExceeded, InvalidChunkNo, InterruptedException, AlreadyBoundException, ArgsException {
+    public static void main(String[] args) throws Exception {
         PeerConfiguration configuration = parseArgs(args);
         Peer peer = new Peer(configuration);
 

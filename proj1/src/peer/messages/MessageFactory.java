@@ -22,10 +22,21 @@ public class MessageFactory {
             .addVersion(versionN, versionM)
             .addMessageType(MessageType.PUTCHUNK)
             .addSenderId(senderId)
-            .addSenderId(fileId)
+            .addFileId(fileId)
             .addChunkNo(String.valueOf(chunkNo))
             .addReplicationDeg((short) replicationDeg)
             .addBody(body);
+        return builder.getMessage();
+    }
+
+    public byte[] getStoredMessage(String senderId, String fileId, int chunkNo) throws ArgsException {
+        MessageBuilder builder = new MessageBuilder();
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.STORED)
+            .addSenderId(senderId)
+            .addFileId(fileId)
+            .addChunkNo(String.valueOf(chunkNo));
         return builder.getMessage();
     }
 }

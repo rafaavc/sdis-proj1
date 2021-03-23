@@ -1,8 +1,7 @@
 package channels.actions;
 
-import java.net.DatagramPacket;
-import messages.MessageParser;
 import messages.Message;
+import java.util.Random;
 
 import configuration.PeerConfiguration;
 
@@ -11,10 +10,25 @@ public class BackupChannelAction extends Action {
         super(configuration);
     }
 
-    public void execute(DatagramPacket packet) {
-        byte[] data = packet.getData();
-        Message msg = MessageParser.parse(data);
+    public void execute(Message msg) {
+        switch(msg.getMessageType()) { 
+            case PUTCHUNK:
+                try {
 
-        System.out.println("Received msg: " + new String(msg.getBody()));
+                    System.out.println("Storing chunk.");
+                    Thread.sleep(new Random().nextInt(400));
+                    this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+                    
+                } catch (Exception e) {
+
+                    System.err.println(e.getMessage());
+                    e.printStackTrace();
+
+                }
+                break;
+            default:
+                System.err.println("Received wrong message in BackupChannelAction! " + msg);
+                break;
+        }
     }
 }

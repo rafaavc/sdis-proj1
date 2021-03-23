@@ -1,6 +1,6 @@
 package channels.actions;
 
-import java.net.DatagramPacket;
+import messages.Message;
 
 import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
@@ -24,5 +24,9 @@ public abstract class Action {
         return null;
     }
 
-    public abstract void execute(DatagramPacket packet);
+    public PeerConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public abstract void execute(Message msg);
 }

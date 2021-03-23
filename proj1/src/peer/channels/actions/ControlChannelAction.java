@@ -1,6 +1,6 @@
 package channels.actions;
 
-import java.net.DatagramPacket;
+import messages.Message;
 
 import configuration.PeerConfiguration;
 
@@ -9,8 +9,8 @@ public class ControlChannelAction extends Action {
         super(configuration);
     }
 
-    public void execute(DatagramPacket packet) {
+    public void execute(Message msg) {
         // Replies to putchunk
-        System.out.println("Received a ControlPacketAction: " + new String(packet.getData()).trim());
+        System.out.println("Received a ControlPacketAction: " + msg);
     }
 }

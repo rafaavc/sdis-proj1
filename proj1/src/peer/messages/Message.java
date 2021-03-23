@@ -73,4 +73,9 @@ public class Message {
         if (this.replicationDeg < 0) throw new Exception("Trying to access chunkNo of message without this field.");
         return replicationDeg;
     }
+
+    @Override
+    public String toString() {
+        return "Message: " + version + " "+ messageType+ " "+ senderId + " "+ fileId + " "+ chunkNo;
+    }
 }

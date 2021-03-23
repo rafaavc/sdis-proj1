@@ -171,8 +171,8 @@ while running:
 
         if (pollForChanges()): 
             print("Found Changes")
-        if (compile_peers()): # improvement: only compile the files that were changed
-            break
+            if (compile_peers()): # improvement: only compile the files that were changed
+                break
     
     close_processes(processes)
     if not running: os.kill(rmipid, signal.SIGTERM)

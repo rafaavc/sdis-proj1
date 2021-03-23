@@ -7,19 +7,24 @@ import channels.MulticastChannel;
 import channels.actions.Action;
 import configuration.ClientInterface;
 import configuration.PeerConfiguration;
-import exceptions.ArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
 import files.Chunk;
 import files.File;
-import messages.MessageFactory;
+import state.ChunkPair;
+import state.FileInfo;
+import state.PeerState;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
     private final PeerConfiguration configuration;
+    private final PeerState state;
 
-    public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo {
+    public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ClassNotFoundException {
         this.configuration = configuration;
+        this.state = PeerState.read(configuration.getRootDir());
+
+        System.out.println(this.state.getFiles());
 
         for (MulticastChannel channel : this.configuration.getChannels()) {
             new ChannelListener(channel, Action.get(this.configuration, channel.getType())).start();
@@ -31,12 +36,15 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public void backup(String filePath, int replicationDegree) throws RemoteException {
         try {
             File file = new File(filePath);
-            MessageFactory factory = new MessageFactory(1, 0);
+            FileInfo info = new FileInfo(filePath, file.getFileId(), replicationDegree);
             for (Chunk chunk : file.getChunks()) {
-                byte[] msg = factory.getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), replicationDegree, chunk.getChunkNo(), chunk.getData());
+                byte[] msg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), replicationDegree, chunk.getChunkNo(), chunk.getData());
                 this.configuration.getMDB().send(msg);
+                int effectiveReplicationDegree = replicationDegree; // TODO
+                info.addChunk(new ChunkPair(chunk.getChunkNo(), effectiveReplicationDegree));
                 //while(x<5){while(respostas<replicationDegree) {send;delay=delay*2
             }
+            this.state.addFile(info);
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }

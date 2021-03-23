@@ -92,11 +92,14 @@ public class MessageBuilder {
         String str =  builder.toString();
         byte[] header = str.getBytes();
 
-        byte[] data = new byte[header.length + body.length];
+        if (body != null) {
+            byte[] data = new byte[header.length + body.length];
 
-        System.arraycopy(header, 0, data, 0, header.length);
-        System.arraycopy(body, 0, data, header.length, body.length);
+            System.arraycopy(header, 0, data, 0, header.length);
+            System.arraycopy(body, 0, data, header.length, body.length);
 
-        return data;
+            return data;
+        }
+        return header;
     }
 }

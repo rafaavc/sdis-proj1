@@ -1,10 +1,12 @@
 package configuration;
 
 import channels.MulticastChannel;
+import messages.MessageFactory;
 
 public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
     private final MulticastChannel mc, mdb, mdr;
+    private final MessageFactory factory;
 
     public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) {
         this.protocolVersion = protocolVersion;
@@ -13,6 +15,15 @@ public class PeerConfiguration {
         this.mc = mc;
         this.mdb = mdb;
         this.mdr = mdr;
+        this.factory = new MessageFactory(1, 0);
+    }
+
+    public String getRootDir() {
+        return this.peerId;
+    }
+
+    public MessageFactory getMessageFactory() {
+        return factory;
     }
 
     public String getProtocolVersion() {

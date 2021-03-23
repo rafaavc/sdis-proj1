@@ -1,6 +1,6 @@
 package channels.actions;
 
-import java.net.DatagramPacket;
+import messages.Message;
 
 import configuration.PeerConfiguration;
 
@@ -9,7 +9,7 @@ public class RestoreChannelAction extends Action {
         super(configuration);
     }
 
-    public void execute(DatagramPacket packet) {
-        System.out.println("Received a RestorePacketAction: " + new String(packet.getData()).trim());
+    public void execute(Message msg) {
+        System.out.println("Received a RestorePacketAction: " + msg);
     }
 }
