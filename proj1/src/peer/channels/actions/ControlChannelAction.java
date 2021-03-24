@@ -13,7 +13,7 @@ public class ControlChannelAction extends Action {
         try {
             switch(msg.getMessageType()) { 
                 case STORED:
-                    this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId())); // TODO change peer id type to int
+                    this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
                     break;
                 default:
                     System.err.println("Received wrong message in BackupChannelAction! " + msg);

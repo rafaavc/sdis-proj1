@@ -79,6 +79,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
                     replicationDegree = Math.max(this.configuration.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
                     if (replicationDegree >= desiredReplicationDegree) break;
                     sleepAmount *= 2;
+                    count++;
                 }
 
                 if (replicationDegree == 0) System.err.println("Could not backup chunk (replication degree == 0).");
