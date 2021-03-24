@@ -161,13 +161,17 @@ while running:
 
     while True:
         text = input().strip()
+
         if text == "exit":
             running = False
+            break
+        elif text == "restart":
             break
         elif text != "":
             print()
             subprocess.run([ "./interface.sh", *text.split(" ")])
             continue
+        
 
         if (pollForChanges()): 
             print("Found Changes")

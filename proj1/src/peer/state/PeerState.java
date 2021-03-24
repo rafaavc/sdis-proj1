@@ -7,7 +7,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import state.FileInfo;
 import configuration.PeerConfiguration;
@@ -18,22 +20,38 @@ public class PeerState implements Serializable {
     private static String stateFileName = "metadata";
     private final String dir;
 
-    private List<FileInfo> files = new ArrayList<>();
-    private List<String> chunks = new ArrayList<>();
+    private Map<String, FileInfo> files = new HashMap<>();
+    private Map<String, ChunkInfo> chunks = new HashMap<>();
 
     public PeerState(String dir) {
         this.dir = dir;
     }
 
     public void addFile(FileInfo f) throws IOException {
-        files.add(f);
-        this.write(); // TO REMOVE
+        files.put(f.getFileId(), f);
+        //this.write(); // TO REMOVE
     }
 
-    public List<FileInfo> getFiles() {
+    public void addChunk(ChunkInfo c) throws IOException {
+        chunks.put(c.getFileId() + c.getChunkNo(), c);  // chunk is identified by (fileId, chunkNo) pair
+        //this.write(); // TO REMOVE
+    }
+
+    public Map<String, FileInfo> getFiles() {
         return files;
     }
-    
+
+    public Map<String, ChunkInfo> getChunks() {
+        return chunks;
+    }
+
+    public FileInfo getFile(String fileId) {
+        return files.get(fileId);
+    }
+
+    public ChunkInfo getChunk(String fileId, int chunkNo) {
+        return chunks.get(fileId + chunkNo);
+    }
 
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
         java.io.File f = new java.io.File(dir + "/" + stateFileName);

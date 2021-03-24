@@ -8,7 +8,7 @@ import configuration.ClientInterface;
 
 public class BackupServiceInterface {
     public static void main(String[] args) throws AccessException, RemoteException, NotBoundException {
-        if (args.length != 2) {
+        if (args.length < 2) {
             System.err.println("I need the peer's rmi registry name and the method to invoke.");
             System.exit(1);
         }
@@ -24,7 +24,12 @@ public class BackupServiceInterface {
                 stub.testMulticast();
                 break;
             case "backup": 
-                stub.backup("testFile1", 3);
+                if (args.length < 4) {
+                    System.err.println("To backup I need the file path and the desired replication degree (from 0 to 9).");
+                    System.exit(1);
+                }
+                stub.backup(args[2], Integer.parseInt(args[3]));
+                break;
             default:
                 break;
         }

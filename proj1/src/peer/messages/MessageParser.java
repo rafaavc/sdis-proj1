@@ -7,7 +7,7 @@ import messages.MessageBuilder.MessageType;
 
 public class MessageParser {
 
-    public static Message parse(byte[] data) {
+    public static Message parse(byte[] data, int length) {
         int bodyStart = -1, headerEnd = -1;
         for (int i = 0; i < data.length; i++) {
             byte b = data[i];
@@ -31,7 +31,7 @@ public class MessageParser {
             message.setMessageType(MessageType.PUTCHUNK);
             message.setChunkNo(Integer.parseInt(headerPieces[4]));
             message.setReplicationDeg((short) Integer.parseInt(headerPieces[5]));
-            byte[] body = Arrays.copyOfRange(data, bodyStart, data.length);
+            byte[] body = Arrays.copyOfRange(data, bodyStart, length);
             message.setBody(body);
 
         } else if(messageType.equals(MessageBuilder.messages.get(MessageType.STORED))) { // TODO
@@ -48,7 +48,7 @@ public class MessageParser {
             
             message.setMessageType(MessageType.CHUNK);
             message.setChunkNo(Integer.parseInt(headerPieces[4]));
-            byte[] body = Arrays.copyOfRange(data, bodyStart, data.length);
+            byte[] body = Arrays.copyOfRange(data, bodyStart, length);
             message.setBody(body);
 
         } else if(messageType.equals(MessageBuilder.messages.get(MessageType.DELETE))) { // TODO

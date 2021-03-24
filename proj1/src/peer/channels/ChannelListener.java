@@ -25,18 +25,32 @@ public class ChannelListener extends Thread {
             socket.joinGroup(channel.getHost());
 
             while (true) {
-                byte[] rbuf = new byte[500];
+                byte[] rbuf = new byte[65000];
                 DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length);
 
                 socket.receive(packet);
 
-                byte[] data = packet.getData();
-                Message msg = MessageParser.parse(data);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        byte[] data = packet.getData();
+                        // int i = data.length - 1;
+                        // for (; i >= 0; i--) {
+                        //     if (data[i] != '\0') {
+                        //         System.out.println("Found data, i = " + i);
+                        //         break;
+                        //     }
+                        // }
 
-                if (msg.getSenderId().equals(this.action.getConfiguration().getPeerId())) System.out.println("Received own message");
-                else {
-                    this.action.execute(msg);
-                }
+                        System.out.println("Packet length: " + packet.getLength());
+                        Message msg = MessageParser.parse(data, packet.getLength());
+        
+                        if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) System.out.println("Received own message");
+                        else {
+                            action.execute(msg);
+                        }
+                    }
+                }.start();
             }
         } catch (IOException e) {
             if (!(e instanceof SocketException)) {

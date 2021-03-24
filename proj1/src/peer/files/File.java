@@ -39,7 +39,8 @@ public class File {
 
         if (!f.exists()) throw new ArgsException(Type.FILE_DOESNT_EXIST, path);
 
-        this.data = FileManager.read(path);
+        FileManager files = new FileManager(".");
+        this.data = files.read(path);
 
         this.fileId = File.getFileId(f);
 

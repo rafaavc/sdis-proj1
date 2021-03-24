@@ -1,14 +1,18 @@
 package configuration;
 
+import java.io.IOException;
+
 import channels.MulticastChannel;
 import messages.MessageFactory;
+import state.PeerState;
 
 public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
     private final MulticastChannel mc, mdb, mdr;
     private final MessageFactory factory;
+    private final PeerState state;
 
-    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) {
+    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
@@ -16,6 +20,11 @@ public class PeerConfiguration {
         this.mdb = mdb;
         this.mdr = mdr;
         this.factory = new MessageFactory(1, 0);
+        this.state = PeerState.read(this.getRootDir());
+    }
+
+    public PeerState getState() {
+        return state;
     }
 
     public String getRootDir() {

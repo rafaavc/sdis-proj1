@@ -27,7 +27,13 @@ public class Main {
                 System.out.println("Closing multicast sockets and ubinding from registry..."); 
 
                 for (MulticastChannel channel : configuration.getChannels()) channel.close();
-
+                
+                try {
+                    peer.writeState();
+                } catch (IOException e1) {
+                    System.out.println(e1.getMessage());
+                    e1.printStackTrace();
+                }
                 try {
                     registry.unbind(configuration.getServiceAccessPoint());
                     System.out.println("Unbound successfully."); 
@@ -38,7 +44,7 @@ public class Main {
         });
     }
 
-    public static PeerConfiguration parseArgs(String args[]) throws ArgsException, NumberFormatException, IOException {
+    public static PeerConfiguration parseArgs(String args[]) throws ArgsException, NumberFormatException, IOException, ClassNotFoundException {
         if (args.length != 9) throw new ArgsException(ArgsException.Type.ARGS_LENGTH);
 
         // Need to verify better
