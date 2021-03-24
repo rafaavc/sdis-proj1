@@ -10,7 +10,18 @@ public class ControlChannelAction extends Action {
     }
 
     public void execute(Message msg) {
-        // Replies to putchunk
-        System.out.println("Received a ControlPacketAction: " + msg);
+        try {
+            switch(msg.getMessageType()) { 
+                case STORED:
+                    this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId())); // TODO change peer id type to int
+                    break;
+                default:
+                    System.err.println("Received wrong message in BackupChannelAction! " + msg);
+                    break;
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
