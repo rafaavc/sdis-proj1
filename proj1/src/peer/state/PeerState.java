@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 
+
 public class PeerState implements Serializable {
     private static final long serialVersionUID = 3474820596488159542L;
 
@@ -19,7 +20,7 @@ public class PeerState implements Serializable {
     private final String dir;
 
     private Map<String, FileInfo> files = new HashMap<>();
-    private Map<String, ChunkInfo> chunks = new HashMap<>();
+    private Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
     private Map<String, List<String>> fileNameIds = new HashMap<>();
 
     public PeerState(String dir) {
@@ -44,23 +45,32 @@ public class PeerState implements Serializable {
     }
 
     public void addChunk(ChunkInfo c) throws IOException {
-        chunks.put(c.getFileId() + c.getChunkNo(), c);  // chunk is identified by (fileId, chunkNo) pair
+
+        if (chunks.containsKey(c.getFileId()) && !chunks.get(c.getFileId()).containsKey(c.getChunkNo())) {
+            chunks.get(c.getFileId()).put(c.getChunkNo(), c);
+        } else if (!chunks.containsKey(c.getFileId())) {
+            Map<Integer, ChunkInfo> info = new HashMap<>();
+            info.put(c.getChunkNo(), c);
+            chunks.put(c.getFileId(), info);
+        }
         //this.write(); // TO REMOVE
     }
 
     public void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
-        String chunkId = fileId + chunkNo;
-        if (chunks.containsKey(chunkId)) {
-            chunks.get(chunkId).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
+        if (chunks.containsKey(fileId)) {
+            Map<Integer, ChunkInfo> fileChunks = chunks.get(fileId);
+            if (fileChunks.containsKey(chunkNo)) {
+                fileChunks.get(chunkNo).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
+            }
         }
     }
 
-    public Map<String, FileInfo> getFiles() {
-        return files;
+    public void deleteFile(String fileId) {
+        this.files.remove(fileId);
     }
 
-    public Map<String, ChunkInfo> getChunks() {
-        return chunks;
+    public void deleteFileChunks(String fileId) {
+        this.chunks.remove(fileId);
     }
 
     public FileInfo getFile(String fileId) {
@@ -68,7 +78,7 @@ public class PeerState implements Serializable {
     }
 
     public ChunkInfo getChunk(String fileId, int chunkNo) {
-        return chunks.get(fileId + chunkNo);
+        return chunks.containsKey(fileId) ? chunks.get(fileId).get(chunkNo) : null;
     }
 
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
@@ -108,9 +118,11 @@ public class PeerState implements Serializable {
 
         if (!chunks.isEmpty()) {
             res.append("I've stored these chunks:\n");
-            for (ChunkInfo chunk : chunks.values()) {
-                res.append(chunk);
-                res.append("\n");
+            for (Map<Integer, ChunkInfo> chunks : chunks.values()) {
+                for (ChunkInfo chunk : chunks.values()) {
+                    res.append(chunk);
+                    res.append("\n");
+                }
             }
             res.append("\n");
         }
