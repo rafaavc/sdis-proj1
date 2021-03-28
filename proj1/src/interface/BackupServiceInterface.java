@@ -14,24 +14,37 @@ public class BackupServiceInterface {
         }
 
         Registry registry = LocateRegistry.getRegistry();
-        ClientInterface stub = (ClientInterface) registry.lookup(args[0]);
+        try {
+            ClientInterface stub = (ClientInterface) registry.lookup(args[0]);
 
-        switch(args[1]) {
-            case "hi":
-                stub.hi();
-                break;
-            case "testMulticast":
-                stub.testMulticast();
-                break;
-            case "backup": 
-                if (args.length < 4) {
-                    System.err.println("To backup I need the file path and the desired replication degree (from 0 to 9).");
-                    System.exit(1);
-                }
-                stub.backup(args[2], Integer.parseInt(args[3]));
-                break;
-            default:
-                break;
+            switch(args[1]) {
+                case "hi":
+                    stub.hi();
+                    break;
+                case "testMulticast":
+                    stub.testMulticast();
+                    break;
+                case "backup": 
+                    if (args.length < 4) {
+                        System.err.println("To backup I need the file path and the desired replication degree (from 1 to 9).");
+                        System.exit(1);
+                    }
+                    try {
+                        int desiredReplicationDegree = Integer.parseInt(args[3]);
+                        if (desiredReplicationDegree < 1 || desiredReplicationDegree > 9) throw new NumberFormatException();
+    
+                        stub.backup(args[2], desiredReplicationDegree);
+                    } catch(NumberFormatException e) {
+                        System.err.println("The desired replication degree is not valid. It must be an integer in the inclusive range of 1 to 9.");
+                        System.exit(1);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } catch(NotBoundException e) {
+            System.out.println("Could not find peer with access point '" + args[0] + "'.");
+            System.exit(1);
         }
     }
 }
