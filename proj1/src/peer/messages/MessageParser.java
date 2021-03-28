@@ -1,7 +1,6 @@
 package messages;
 
 import java.util.Arrays;
-import java.util.List;
 
 import messages.MessageBuilder.MessageType;
 

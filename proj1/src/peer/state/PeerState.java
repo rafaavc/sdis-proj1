@@ -6,17 +6,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import state.FileInfo;
-import configuration.PeerConfiguration;
 
 
 public class PeerState implements Serializable {
-
+    private static final long serialVersionUID = 3474820596488159542L;
+    
     private static String stateFileName = "metadata";
     private final String dir;
 

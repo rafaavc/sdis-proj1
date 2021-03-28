@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
 import java.util.Map;
 
 import channels.ChannelListener;
@@ -11,12 +10,10 @@ import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
-import files.Chunk;
-import files.File;
 import state.ChunkInfo;
-import state.ChunkPair;
 import state.FileInfo;
 import state.PeerState;
+import actions.Backup;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
@@ -60,38 +57,11 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         this.getState().write();
     }
 
+    /* RMI interface */
+
     public void backup(String filePath, int desiredReplicationDegree) throws RemoteException {
-        try {
-            File file = new File(filePath);
-            FileInfo info = new FileInfo(filePath, file.getFileId(), desiredReplicationDegree);
-
-            List<Chunk> chunks = file.getChunks();
-            System.out.println("I split the file into these chunks: " + chunks);
-
-            for (Chunk chunk : chunks) {
-                byte[] msg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
-                
-                int count = 0, sleepAmount = 1000, replicationDegree = 0;
-                while(count < 5) {
-                    this.configuration.getMDB().send(msg);
-                    Thread.sleep(sleepAmount);
-                    System.out.println("Checking stored count = " + this.configuration.getStoredCount(chunk.getFileId(), chunk.getChunkNo()));
-                    replicationDegree = Math.max(this.configuration.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
-                    if (replicationDegree >= desiredReplicationDegree) break;
-                    sleepAmount *= 2;
-                    count++;
-                }
-
-                if (replicationDegree == 0) System.err.println("Could not backup chunk (replication degree == 0).");
-
-                info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
-            }
-            this.getState().addFile(info);
-        } catch(Exception e) {
-            System.err.println(e.getMessage());
-        }
+        new Backup(this.configuration, filePath, desiredReplicationDegree).start();
     }
-
 
     public void hi() throws RemoteException {
         System.out.println("Hi");

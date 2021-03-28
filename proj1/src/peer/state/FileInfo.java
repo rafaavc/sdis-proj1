@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileInfo implements Serializable {
+    private static final long serialVersionUID = 8712295865807115205L;
+    
     private final String pathName, fileId;
     private final int desiredReplicationDegree;
     private final List<ChunkPair> chunks = new ArrayList<>();

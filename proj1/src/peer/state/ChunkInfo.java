@@ -1,10 +1,11 @@
 package state;
 
-import java.io.Serializable;
+public class ChunkInfo extends ChunkPair {
+    private static final long serialVersionUID = -7039536338647806374L;
 
-public class ChunkInfo extends ChunkPair implements Serializable {
     private final String fileId;
     private final int desiredReplicationDegree;
+    
     public ChunkInfo(String fileId, int chunkNo, int perceivedReplicationDegree, int desiredReplicationDegree) {
         super(chunkNo, perceivedReplicationDegree);
         this.fileId = fileId;
