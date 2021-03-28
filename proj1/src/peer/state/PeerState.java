@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -18,13 +20,26 @@ public class PeerState implements Serializable {
 
     private Map<String, FileInfo> files = new HashMap<>();
     private Map<String, ChunkInfo> chunks = new HashMap<>();
+    private Map<String, List<String>> fileNameIds = new HashMap<>();
 
     public PeerState(String dir) {
         this.dir = dir;
     }
 
+    public List<String> getFileIds(String fileName) {
+        return fileNameIds.containsKey(fileName) ? fileNameIds.get(fileName) : new ArrayList<>();
+    }
+
     public void addFile(FileInfo f) throws IOException {
         files.put(f.getFileId(), f);
+        String fileName = f.getFileName();
+        if (fileNameIds.containsKey(fileName) && !fileNameIds.get(fileName).contains(f.getFileId())) {
+            fileNameIds.get(fileName).add(f.getFileId());
+        } else if (!fileNameIds.containsKey(fileName)) {
+            List<String> ids = new ArrayList<>();
+            ids.add(f.getFileId());
+            fileNameIds.put(fileName, ids);
+        }
         //this.write(); // TO REMOVE
     }
 

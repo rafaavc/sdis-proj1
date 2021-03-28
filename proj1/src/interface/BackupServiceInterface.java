@@ -39,6 +39,12 @@ public class BackupServiceInterface {
                         System.exit(1);
                     }
                     break;
+                case "DELETE":
+                    if (args.length < 3) {
+                        System.err.println("To delete I need the name of the file.");
+                        System.exit(1);
+                    }
+                    stub.delete(args[2]);
                 case "STATE": 
                     System.out.println(stub.getState());
                     break;

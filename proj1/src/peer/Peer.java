@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;
@@ -11,6 +12,7 @@ import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
 import state.PeerState;
 import actions.Backup;
+import actions.Delete;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
@@ -36,6 +38,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
     public void backup(String filePath, int desiredReplicationDegree) throws RemoteException {
         new Backup(this.configuration, filePath, desiredReplicationDegree).start();
+    }
+
+    public void delete(String fileName) throws RemoteException {
+        List<String> fileIds = this.getState().getFileIds(fileName);
+        if (fileIds.isEmpty()) System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+        
+        for (String fileId : fileIds) new Delete(this.configuration, fileId).start();
     }
 
     public PeerState getState() {

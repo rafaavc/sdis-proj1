@@ -39,4 +39,14 @@ public class MessageFactory {
             .addChunkNo(String.valueOf(chunkNo));
         return builder.getMessage();
     }
+
+    public byte[] getDeleteMessage(String senderId, String fileId) throws ArgsException {
+        MessageBuilder builder = new MessageBuilder();
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.DELETE)
+            .addSenderId(senderId)
+            .addFileId(fileId);
+        return builder.getMessage();
+    }
 }
