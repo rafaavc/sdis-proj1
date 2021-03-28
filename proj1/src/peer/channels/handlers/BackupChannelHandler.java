@@ -21,7 +21,7 @@ public class BackupChannelHandler extends Handler {
                     System.out.println("Storing chunk.");
                     FileManager files = new FileManager(this.configuration.getRootDir());
 
-                    files.write(msg.getFileId() + msg.getChunkNo(), msg.getBody());
+                    files.writeChunk(msg.getFileId(), String.valueOf(msg.getChunkNo()), msg.getBody());
                     this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
                     this.configuration.getState().addChunk(new ChunkInfo(msg.getFileId(), msg.getChunkNo(), this.configuration.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));  // TODO: PERCEIVED
 

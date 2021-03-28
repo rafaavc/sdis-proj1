@@ -24,4 +24,14 @@ public class ChunkInfo extends ChunkPair {
     public String toString() {
         return fileId + ":" + chunkNo + " | replication desired: " + desiredReplicationDegree + ", perceived: " + perceivedReplicationDegree;
     }
+
+    @Override
+    public boolean equals(Object c) { 
+        if (this == c) return true;
+        if (c == null) return false;
+
+        if (c.getClass() != this.getClass()) return false;
+
+        return this.fileId.equals(((ChunkInfo)c).getFileId()) && this.chunkNo == ((ChunkInfo)c).getChunkNo();
+    }
 }
