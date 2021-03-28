@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+
+import channels.handlers.Handler;
 import messages.Message;
 import messages.MessageParser;
-import channels.actions.Action;
 
 public class ChannelListener extends Thread {
     private final MulticastChannel channel;
-    private final Action action;
+    private final Handler action;
 
-    public ChannelListener(MulticastChannel channel, Action action) {
+    public ChannelListener(MulticastChannel channel, Handler action) {
         this.channel = channel;
         this.action = action;
     }

@@ -1,4 +1,4 @@
-package channels.actions;
+package channels.handlers;
 
 import messages.Message;
 import state.ChunkInfo;
@@ -8,8 +8,8 @@ import java.util.Random;
 import configuration.PeerConfiguration;
 import files.FileManager;
 
-public class BackupChannelAction extends Action {
-    public BackupChannelAction(PeerConfiguration configuration) {
+public class BackupChannelHandler extends Handler {
+    public BackupChannelHandler(PeerConfiguration configuration) {
         super(configuration);
     }
 

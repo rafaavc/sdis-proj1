@@ -6,7 +6,7 @@ import java.util.Map;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;
-import channels.actions.Action;
+import channels.handlers.Handler;
 import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import exceptions.ChunkSizeExceeded;
@@ -46,7 +46,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         System.out.println(output);
 
         for (MulticastChannel channel : this.configuration.getChannels()) {
-            new ChannelListener(channel, Action.get(this.configuration, channel.getType())).start();
+            new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
         }
 
         System.out.println("Ready!");

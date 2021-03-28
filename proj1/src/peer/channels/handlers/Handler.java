@@ -1,25 +1,25 @@
-package channels.actions;
+package channels.handlers;
 
 import messages.Message;
 
 import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
 
-public abstract class Action {
+public abstract class Handler {
     protected final PeerConfiguration configuration;
 
-    public Action(PeerConfiguration configuration) {
+    public Handler(PeerConfiguration configuration) {
         this.configuration = configuration;
     }
 
-    public static Action get(PeerConfiguration configuration, ChannelType type) {
+    public static Handler get(PeerConfiguration configuration, ChannelType type) {
         switch (type) {
             case CONTROL:
-                return new ControlChannelAction(configuration);
+                return new ControlChannelHandler(configuration);
             case BACKUP:
-                return new BackupChannelAction(configuration);
+                return new BackupChannelHandler(configuration);
             case RESTORE:
-                return new RestoreChannelAction(configuration);
+                return new RestoreChannelHandler(configuration);
         }
         return null;
     }

@@ -1,11 +1,11 @@
-package channels.actions;
+package channels.handlers;
 
 import messages.Message;
 
 import configuration.PeerConfiguration;
 
-public class ControlChannelAction extends Action {
-    public ControlChannelAction(PeerConfiguration configuration) {
+public class ControlChannelHandler extends Handler {
+    public ControlChannelHandler(PeerConfiguration configuration) {
         super(configuration);
     }
 

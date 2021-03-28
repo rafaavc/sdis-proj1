@@ -1,11 +1,11 @@
-package channels.actions;
+package channels.handlers;
 
 import messages.Message;
 
 import configuration.PeerConfiguration;
 
-public class RestoreChannelAction extends Action {
-    public RestoreChannelAction(PeerConfiguration configuration) {
+public class RestoreChannelHandler extends Handler {
+    public RestoreChannelHandler(PeerConfiguration configuration) {
         super(configuration);
     }
 
