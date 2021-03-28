@@ -22,35 +22,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ClassNotFoundException {
         this.configuration = configuration;
 
-        Map<String, FileInfo> files = this.getState().getFiles();
-
-        String output = "";
-        if (files.size() != 0) {
-            output += "# I've sent these files:\n";
-            for (String key : files.keySet()) {
-                output += files.get(key) + "\n";
-            }
-        } else output += "# I haven't sent any files :(\n";
-
-        Map<String, ChunkInfo> chunks = this.getState().getChunks();
-        if (chunks.size() != 0) {
-            output += "# I've backed up these chunks:\n";
-            for (String key : chunks.keySet()) {
-                output += chunks.get(key) + "\n";
-            }
-        } else output += "# I haven't backed up any chunks :(\n";
-
-        System.out.println(output);
+        System.out.println(this.getState());
 
         for (MulticastChannel channel : this.configuration.getChannels()) {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
         }
 
         System.out.println("Ready!");
-    }
-
-    public PeerState getState() {
-        return this.configuration.getState();
     }
 
     public void writeState() throws IOException {
@@ -61,6 +39,10 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
     public void backup(String filePath, int desiredReplicationDegree) throws RemoteException {
         new Backup(this.configuration, filePath, desiredReplicationDegree).start();
+    }
+
+    public PeerState getState() {
+        return this.configuration.getState();
     }
 
     public void hi() throws RemoteException {

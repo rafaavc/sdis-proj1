@@ -17,14 +17,14 @@ public class BackupServiceInterface {
         try {
             ClientInterface stub = (ClientInterface) registry.lookup(args[0]);
 
-            switch(args[1]) {
-                case "hi":
+            switch(args[1].toUpperCase()) {
+                case "HI":
                     stub.hi();
                     break;
-                case "testMulticast":
+                case "TESTMULTICAST":
                     stub.testMulticast();
                     break;
-                case "backup": 
+                case "BACKUP": 
                     if (args.length < 4) {
                         System.err.println("To backup I need the file path and the desired replication degree (from 1 to 9).");
                         System.exit(1);
@@ -38,6 +38,9 @@ public class BackupServiceInterface {
                         System.err.println("The desired replication degree is not valid. It must be an integer in the inclusive range of 1 to 9.");
                         System.exit(1);
                     }
+                    break;
+                case "STATE": 
+                    System.out.println(stub.getState());
                     break;
                 default:
                     break;

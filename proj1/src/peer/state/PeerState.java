@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class PeerState implements Serializable {
     private static final long serialVersionUID = 3474820596488159542L;
-    
+
     private static String stateFileName = "metadata";
     private final String dir;
 
@@ -78,5 +78,30 @@ public class PeerState implements Serializable {
         out.writeObject(this);
   
         out.close();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder res = new StringBuilder();
+
+        if (!chunks.isEmpty()) {
+            res.append("I've stored these chunks:\n");
+            for (ChunkInfo chunk : chunks.values()) {
+                res.append(chunk);
+                res.append("\n");
+            }
+            res.append("\n");
+        }
+
+        if (!files.isEmpty()) {
+            res.append("I've sent these files for backup:\n");
+            for (FileInfo file : files.values()) {
+                res.append(file);
+                res.append("\n");
+            }
+            res.append("\n");
+        }
+
+        return res.toString();
     }
 }
