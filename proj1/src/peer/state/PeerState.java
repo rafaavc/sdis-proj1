@@ -116,6 +116,8 @@ public class PeerState implements Serializable {
     public String toString() {
         StringBuilder res = new StringBuilder();
 
+        if (chunks.isEmpty() && files.isEmpty()) return "I haven't sent any files nor backed up any chunks.\n";
+
         if (!chunks.isEmpty()) {
             res.append("I've stored these chunks:\n");
             for (Map<Integer, ChunkInfo> chunks : chunks.values()) {

@@ -62,7 +62,7 @@ class PrintPeerStdout(Thread):
     def run(self):
         time.sleep(.5)
         while self.running:
-            text = os.read(self.proc["pipeRFD"], 1024).decode("UTF-8")
+            text = os.read(self.proc["pipeRFD"], 10240).decode("UTF-8")
             if (len(text) != 0):
                 name = "peer" + str(self.proc["peerId"])
                 color = peersColors[self.proc["peerId"] % len(peersColors)]

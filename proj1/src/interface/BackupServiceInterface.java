@@ -45,6 +45,7 @@ public class BackupServiceInterface {
                         System.exit(1);
                     }
                     stub.delete(args[2]);
+                    break;
                 case "STATE": 
                     System.out.println(stub.getState());
                     break;
