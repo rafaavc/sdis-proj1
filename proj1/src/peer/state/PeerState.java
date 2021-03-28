@@ -33,6 +33,13 @@ public class PeerState implements Serializable {
         //this.write(); // TO REMOVE
     }
 
+    public void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
+        String chunkId = fileId + chunkNo;
+        if (chunks.containsKey(chunkId)) {
+            chunks.get(chunkId).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
+        }
+    }
+
     public Map<String, FileInfo> getFiles() {
         return files;
     }

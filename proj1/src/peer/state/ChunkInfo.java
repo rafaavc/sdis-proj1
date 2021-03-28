@@ -22,6 +22,6 @@ public class ChunkInfo extends ChunkPair {
 
     @Override
     public String toString() {
-        return fileId + ":" + chunkNo;
+        return fileId + ":" + chunkNo + " | replication desired: " + desiredReplicationDegree + ", perceived: " + perceivedReplicationDegree;
     }
 }

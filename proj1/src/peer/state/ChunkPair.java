@@ -5,8 +5,9 @@ import java.io.Serializable;
 public class ChunkPair implements Serializable {
     private static final long serialVersionUID = 4176934406107100902L;
 
-    protected int chunkNo, perceivedReplicationDegree;
-    
+    protected final int chunkNo;
+    protected int perceivedReplicationDegree;
+
     public ChunkPair(int chunkNo, int perceivedReplicationDegree) {
         this.chunkNo = chunkNo;
         this.perceivedReplicationDegree = perceivedReplicationDegree;
@@ -19,5 +20,8 @@ public class ChunkPair implements Serializable {
     public int getPerceivedReplicationDegree() {
         return perceivedReplicationDegree;
     }
-    
+
+    public void setPerceivedReplicationDegree(int perceivedReplicationDegree) {
+        this.perceivedReplicationDegree = perceivedReplicationDegree;
+    }
 }

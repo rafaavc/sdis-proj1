@@ -36,10 +36,12 @@ public class PeerConfiguration {
         } else {
             this.storedCount.put(key, new ArrayList<Integer>(peerId));
         }
+        // should the storedCount be kept in non-volatile memory? :thinking:
+        this.state.updateChunkPerceivedRepDegree(fileId, chunkNo, this.storedCount.get(key).size()); // updates if already existing in the peer's state
     }
 
     public int getStoredCount(String fileId, int chunkNo) {
-        return this.storedCount.get(fileId + chunkNo).size();
+        return this.storedCount.containsKey(fileId + chunkNo) ? this.storedCount.get(fileId + chunkNo).size() : 0;
     }
 
     public PeerState getState() {
