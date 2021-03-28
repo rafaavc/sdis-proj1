@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Map;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;
@@ -10,8 +9,6 @@ import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
-import state.ChunkInfo;
-import state.FileInfo;
 import state.PeerState;
 import actions.Backup;
 
@@ -50,13 +47,14 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     }
 
     public void testMulticast() throws RemoteException {
-        try {
-            this.configuration.getMC().send("Hi in MC");
-            this.configuration.getMDB().send("Hi in MDB");
-            this.configuration.getMDR().send("Hi in MDR");
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
+        System.out.println("This functionality is temporarily shut down.");
+        // try {
+        //     this.configuration.getMC().send("Hi in MC");
+        //     this.configuration.getMDB().send("Hi in MDB");
+        //     this.configuration.getMDR().send("Hi in MDR");
+        // } catch (IOException e) {
+        //     System.err.println(e.getMessage());
+        // }
 
     }
 }
