@@ -13,7 +13,7 @@ public class Delete extends Thread {
 
     @Override
     public void run() {
-        this.configuration.getState().deleteFile(this.fileId);
+        this.configuration.getPeerState().deleteFile(this.fileId);
         try {
             byte[] msg = this.configuration.getMessageFactory().getDeleteMessage(this.configuration.getPeerId(), fileId);
                     

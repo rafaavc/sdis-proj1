@@ -46,10 +46,18 @@ public class BackupServiceInterface {
                     }
                     stub.delete(args[2]);
                     break;
+                case "RESTORE":
+                    if (args.length < 3) {
+                        System.err.println("To restore I need the name of the file.");
+                        System.exit(1);
+                    }
+                    stub.restore(args[2]);
+                    break;
                 case "STATE": 
-                    System.out.println(stub.getState());
+                    System.out.println(stub.getPeerState());
                     break;
                 default:
+                    System.err.println("The operation '" + args[1] + "' doesn't exist.");
                     break;
             }
         } catch(NotBoundException e) {

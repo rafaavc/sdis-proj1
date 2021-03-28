@@ -22,13 +22,25 @@ public class FileManager {
         out.close();
     }
 
-    public void writeChunk(String fileId, String fileName /* Probably the chunkNo */, byte[] data) throws IOException {
+    public void writeChunk(String fileId, int chunkNo, byte[] data) throws IOException {
         String dir = this.rootDir + "/" + fileId;
         this.createDir(dir);
 
-        FileOutputStream out = new FileOutputStream(dir + "/" + fileName);
-        out.write(data);
-        out.close();
+        write(fileId + "/" + chunkNo, data);
+    }
+
+    public byte[] read(String file) throws IOException {
+        FileInputStream in = new FileInputStream(this.rootDir + "/" + file);
+        byte[] data = in.readAllBytes();
+        in.close();
+        return data;
+    }
+
+    public byte[] readChunk(String fileId, int chunkNo) throws IOException {
+        String dir = this.rootDir + "/" + fileId;
+        this.createDir(dir);
+
+        return read(fileId + "/" + chunkNo);
     }
 
     public void deleteFileChunks(String fileId) {
@@ -38,12 +50,5 @@ public class FileManager {
         for (java.io.File chunk : fileFolder.listFiles()) chunk.delete();
 
         fileFolder.delete();
-    }
-
-    public byte[] read(String file) throws IOException {
-        FileInputStream in = new FileInputStream(this.rootDir + "/" + file);
-        byte[] data = in.readAllBytes();
-        in.close();
-        return data;
     }
 }

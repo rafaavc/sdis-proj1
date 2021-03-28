@@ -10,6 +10,6 @@ public class RestoreChannelHandler extends Handler {
     }
 
     public void execute(Message msg) {
-        System.out.println("Received a RestorePacketAction: " + msg);
+        System.out.println("Received a RestorePacketHandler: " + msg);
     }
 }

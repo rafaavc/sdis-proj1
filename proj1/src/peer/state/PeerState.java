@@ -81,6 +81,10 @@ public class PeerState implements Serializable {
         return chunks.containsKey(fileId) ? chunks.get(fileId).get(chunkNo) : null;
     }
 
+    public boolean hasChunk(String fileId, int chunkNo) {
+        return chunks.containsKey(fileId) && chunks.get(fileId).containsKey(chunkNo);
+    }
+
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
         java.io.File f = new java.io.File(dir + "/" + stateFileName);
         if (!f.exists()) {
@@ -114,9 +118,9 @@ public class PeerState implements Serializable {
 
     @Override
     public String toString() {
-        StringBuilder res = new StringBuilder();
-
         if (chunks.isEmpty() && files.isEmpty()) return "I haven't sent any files nor backed up any chunks.\n";
+
+        StringBuilder res = new StringBuilder();
 
         if (!chunks.isEmpty()) {
             res.append("I've stored these chunks:\n");

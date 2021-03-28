@@ -13,6 +13,7 @@ import exceptions.InvalidChunkNo;
 import state.PeerState;
 import actions.Backup;
 import actions.Delete;
+import actions.Restore;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
@@ -21,7 +22,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ClassNotFoundException {
         this.configuration = configuration;
 
-        System.out.println(this.getState());
+        System.out.println(this.getPeerState());
 
         for (MulticastChannel channel : this.configuration.getChannels()) {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
@@ -31,7 +32,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     }
 
     public void writeState() throws IOException {
-        this.getState().write();
+        this.getPeerState().write();
     }
 
     /* RMI interface */
@@ -40,15 +41,32 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         new Backup(this.configuration, filePath, desiredReplicationDegree).start();
     }
 
-    public void delete(String fileName) throws RemoteException {
-        List<String> fileIds = this.getState().getFileIds(fileName);
-        if (fileIds.isEmpty()) System.err.println("The file '" + fileName + "' doesn't exist in my history.");
-        
-        for (String fileId : fileIds) new Delete(this.configuration, fileId).start();
+    public void restore(String fileName) throws RemoteException {
+        new Thread() {
+            @Override
+            public void run() {
+                List<String> fileIds = getPeerState().getFileIds(fileName);
+                if (fileIds.isEmpty()) System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+                
+                new Restore(configuration, getPeerState().getFile(fileIds.get(0))).start();  // como lidar com os casos em que múltiplas versões do ficheiro com o mesmo nome foram backed up?
+            }
+        }.start();
     }
 
-    public PeerState getState() {
-        return this.configuration.getState();
+    public void delete(String fileName) throws RemoteException {
+        new Thread() {
+            @Override
+            public void run() {
+                List<String> fileIds = getPeerState().getFileIds(fileName);
+                if (fileIds.isEmpty()) System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+                
+                for (String fileId : fileIds) new Delete(configuration, fileId).start();
+            }
+        }.start();
+    }
+
+    public PeerState getPeerState() {
+        return this.configuration.getPeerState();
     }
 
     public void hi() throws RemoteException {

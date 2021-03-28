@@ -46,7 +46,7 @@ public class Backup extends Thread {
 
                 info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
             }
-            this.configuration.getState().addFile(info);
+            this.configuration.getPeerState().addFile(info);
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }

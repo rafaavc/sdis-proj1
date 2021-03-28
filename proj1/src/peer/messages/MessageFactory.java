@@ -49,4 +49,27 @@ public class MessageFactory {
             .addFileId(fileId);
         return builder.getMessage();
     }
+
+    public byte[] getGetchunkMessage(String senderId, String fileId, int chunkNo) throws ArgsException {
+        MessageBuilder builder = new MessageBuilder();
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.GETCHUNK)
+            .addSenderId(senderId)
+            .addFileId(fileId)
+            .addChunkNo(String.valueOf(chunkNo));
+        return builder.getMessage();
+    }
+
+    public byte[] getChunkMessage(String senderId, String fileId, int chunkNo, byte[] body) throws ArgsException {
+        MessageBuilder builder = new MessageBuilder();
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.GETCHUNK)
+            .addSenderId(senderId)
+            .addFileId(fileId)
+            .addChunkNo(String.valueOf(chunkNo))
+            .addBody(body);
+        return builder.getMessage();
+    }
 }

@@ -44,7 +44,7 @@ public class PeerConfiguration {
         return this.storedCount.containsKey(fileId + chunkNo) ? this.storedCount.get(fileId + chunkNo).size() : 0;
     }
 
-    public PeerState getState() {
+    public PeerState getPeerState() {
         return state;
     }
     
