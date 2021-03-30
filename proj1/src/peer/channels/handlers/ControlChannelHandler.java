@@ -26,8 +26,10 @@ public class ControlChannelHandler extends Handler {
                 case GETCHUNK:
                     if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         Thread.sleep(new Random().nextInt(400));
-                        // TODO if chunk message received: break;
+
+                        if (this.configuration.hasReceivedChunk(msg.getFileId(), msg.getChunkNo())) break;
                         // else: send chunk
+
                         byte[] chunkData = fileManager.readChunk(msg.getFileId(), msg.getChunkNo());
                         byte[] chunkMsg = this.configuration.getMessageFactory().getChunkMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo(), chunkData);
                         

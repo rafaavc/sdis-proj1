@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import channels.ChannelListener;
@@ -10,6 +11,8 @@ import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
+import files.File;
+import state.FileInfo;
 import state.PeerState;
 import actions.Backup;
 import actions.Delete;
@@ -45,10 +48,28 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         new Thread() {
             @Override
             public void run() {
-                List<String> fileIds = getPeerState().getFileIds(fileName);
-                if (fileIds.isEmpty()) System.err.println("The file '" + fileName + "' doesn't exist in my history.");
-                
-                new Restore(configuration, getPeerState().getFile(fileIds.get(0))).start();  // como lidar com os casos em que múltiplas versões do ficheiro com o mesmo nome foram backed up?
+                //List<String> fileIds = getPeerState().getFileIds(fileName);
+                // if (fileIds.isEmpty()) {
+                //     System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+                //     return;
+                // }
+                java.io.File file = new java.io.File(fileName);
+                if (!file.exists()) {
+                    System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+                    return;
+                }
+                try {
+                    String fileId = File.getFileId(file);
+                    FileInfo f = getPeerState().getFile(fileId);
+                    if (f == null) {
+                        System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+                        return;
+                    }
+                    new Restore(configuration, f).start();
+                } catch (NoSuchAlgorithmException | IOException e) {
+                    System.err.println(e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }.start();
     }

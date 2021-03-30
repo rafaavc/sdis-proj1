@@ -1,8 +1,10 @@
 package files;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class FileManager {
     private final String rootDir;
@@ -14,6 +16,12 @@ public class FileManager {
     public void createDir(String path) {
         java.io.File dir = new java.io.File(path);
         if (!dir.exists()) dir.mkdirs();
+    }
+
+    public void writeFile(String fileName, List<byte[]> chunks) throws IOException {
+        FileOutputStream out = new FileOutputStream(this.rootDir + "/" + fileName);
+        for (byte[] chunk : chunks) out.write(chunk);
+        out.close();
     }
 
     public void write(String file, byte[] data) throws IOException {

@@ -65,7 +65,7 @@ public class MessageFactory {
         MessageBuilder builder = new MessageBuilder();
         builder
             .addVersion(versionN, versionM)
-            .addMessageType(MessageType.GETCHUNK)
+            .addMessageType(MessageType.CHUNK)
             .addSenderId(senderId)
             .addFileId(fileId)
             .addChunkNo(String.valueOf(chunkNo))

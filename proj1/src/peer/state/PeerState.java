@@ -19,9 +19,9 @@ public class PeerState implements Serializable {
     private static String stateFileName = "metadata";
     private final String dir;
 
-    private Map<String, FileInfo> files = new HashMap<>();
-    private Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
-    private Map<String, List<String>> fileNameIds = new HashMap<>();
+    private final Map<String, FileInfo> files = new HashMap<>();
+    private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
+    private final Map<String, List<String>> fileNameIds = new HashMap<>();
 
     public PeerState(String dir) {
         this.dir = dir;

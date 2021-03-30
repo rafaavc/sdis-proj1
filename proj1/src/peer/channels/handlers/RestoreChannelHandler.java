@@ -2,6 +2,8 @@ package channels.handlers;
 
 import messages.Message;
 
+
+
 import configuration.PeerConfiguration;
 
 public class RestoreChannelHandler extends Handler {
@@ -10,6 +12,18 @@ public class RestoreChannelHandler extends Handler {
     }
 
     public void execute(Message msg) {
-        System.out.println("Received a RestorePacketHandler: " + msg);
+        try {
+            switch(msg.getMessageType()) {
+                case CHUNK:
+                    this.configuration.addChunkReceived(msg.getFileId(), msg.getChunkNo(), msg.getBody());
+                    break;
+                default:
+                    System.err.println("Received wrong message in RestoreChannelHandler! " + msg);
+                    break;
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
