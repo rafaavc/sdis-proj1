@@ -1,10 +1,14 @@
+import java.io.File;
+import java.io.IOException;
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.NoSuchAlgorithmException;
 
 import configuration.ClientInterface;
+import files.ChunkedFile;
 
 public class BackupServiceInterface {
     public static void main(String[] args) throws AccessException, RemoteException, NotBoundException {
@@ -20,9 +24,6 @@ public class BackupServiceInterface {
             switch(args[1].toUpperCase()) {
                 case "HI":
                     stub.hi();
-                    break;
-                case "TESTMULTICAST":
-                    stub.testMulticast();
                     break;
                 case "BACKUP": 
                     if (args.length < 4) {
@@ -44,14 +45,16 @@ public class BackupServiceInterface {
                         System.err.println("To delete I need the name of the file.");
                         System.exit(1);
                     }
-                    stub.delete(args[2]);
+                    String deleteFileId = getFileId(args[2]);
+                    if (deleteFileId != null) stub.delete(args[2], deleteFileId);
                     break;
                 case "RESTORE":
                     if (args.length < 3) {
                         System.err.println("To restore I need the name of the file.");
                         System.exit(1);
                     }
-                    stub.restore(args[2]);
+                    String restoreFileId = getFileId(args[2]);
+                    if (restoreFileId != null) stub.restore(args[2], restoreFileId);
                     break;
                 case "RECLAIM":
                     if (args.length < 3) {
@@ -70,6 +73,18 @@ public class BackupServiceInterface {
         } catch(NotBoundException e) {
             System.out.println("Could not find peer with access point '" + args[0] + "'.");
             System.exit(1);
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    public static String getFileId(String fileName) throws NoSuchAlgorithmException, IOException {
+        File file = new File(fileName);
+        if (!file.exists()) {
+            System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+            return null;
+        }
+        return ChunkedFile.generateFileId(file);
     }
 }

@@ -22,7 +22,6 @@ public class PeerState implements Serializable {
 
     private final Map<String, FileInfo> files = new HashMap<>();
     private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
-    private final Map<String, List<String>> fileNameIds = new HashMap<>();
 
     private int maximumSpaceAvailable = -1;
 
@@ -30,33 +29,30 @@ public class PeerState implements Serializable {
         this.dir = dir;
     }
 
-    public void setMaximumSpaceAvailable(int maximumSpaceAvailable) {
+    public void setMaximumStorageAvailable(int maximumSpaceAvailable) {
         this.maximumSpaceAvailable = maximumSpaceAvailable;
     }
 
-    public boolean ownsFile(String fileId) {
-        return files.containsKey(fileId);
+    public int getMaximumStorageAvailable() {
+        return this.maximumSpaceAvailable;
     }
 
-    public List<String> getFileIds(String fileName) {
-        return fileNameIds.containsKey(fileName) ? fileNameIds.get(fileName) : new ArrayList<>();
+    public float getOccupiedStorage() {
+        float occupiedStorage = 0;
+        for (ChunkInfo chunk : getChunks()) occupiedStorage += chunk.getSize();
+        return occupiedStorage;
     }
 
     public void addFile(FileInfo f) throws IOException {
         files.put(f.getFileId(), f);
-        String fileName = f.getFileName();
-        if (fileNameIds.containsKey(fileName) && !fileNameIds.get(fileName).contains(f.getFileId())) {
-            fileNameIds.get(fileName).add(f.getFileId());
-        } else if (!fileNameIds.containsKey(fileName)) {
-            List<String> ids = new ArrayList<>();
-            ids.add(f.getFileId());
-            fileNameIds.put(fileName, ids);
-        }
-        //this.write(); // TO REMOVE
     }
 
-    public void removeChunk(ChunkInfo c) {
-        chunks.get(c.getFileId()).remove(c.getChunkNo());
+    public void deleteFile(String fileId) {
+        this.files.remove(fileId);
+    }
+
+    public boolean ownsFile(String fileId) {
+        return files.containsKey(fileId);
     }
 
     public void addChunk(ChunkInfo c) throws IOException {
@@ -80,8 +76,8 @@ public class PeerState implements Serializable {
         }
     }
 
-    public void deleteFile(String fileId) {
-        this.files.remove(fileId);
+    public void deleteChunk(ChunkInfo c) {
+        chunks.get(c.getFileId()).remove(c.getChunkNo());
     }
 
     public void deleteFileChunks(String fileId) {
@@ -92,6 +88,14 @@ public class PeerState implements Serializable {
         return files.get(fileId);
     }
 
+    public boolean hasChunk(String fileId, int chunkNo) {
+        return chunks.containsKey(fileId) && chunks.get(fileId).containsKey(chunkNo);
+    }
+
+    public ChunkInfo getChunk(String fileId, int chunkNo) {
+        return chunks.containsKey(fileId) ? chunks.get(fileId).get(chunkNo) : null;
+    }
+
     public List<ChunkInfo> getChunks() {
         List<ChunkInfo> res = new ArrayList<>();
 
@@ -100,14 +104,6 @@ public class PeerState implements Serializable {
         }
 
         return res;
-    }
-
-    public ChunkInfo getChunk(String fileId, int chunkNo) {
-        return chunks.containsKey(fileId) ? chunks.get(fileId).get(chunkNo) : null;
-    }
-
-    public boolean hasChunk(String fileId, int chunkNo) {
-        return chunks.containsKey(fileId) && chunks.get(fileId).containsKey(chunkNo);
     }
 
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
@@ -166,6 +162,8 @@ public class PeerState implements Serializable {
             }
             res.append("\n");
         }
+
+        res.append("Occupied storage: " + getOccupiedStorage() + "\n");
 
         return res.toString();
     }

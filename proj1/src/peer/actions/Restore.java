@@ -1,7 +1,5 @@
 package actions;
 
-
-
 import java.util.List;
 
 import configuration.PeerConfiguration;
@@ -11,16 +9,17 @@ import state.FileInfo;
 
 public class Restore extends Thread {
     private final PeerConfiguration configuration;
-    private final FileInfo file;
+    private final String fileId;
 
-    public Restore(PeerConfiguration configuration, FileInfo file) {
+    public Restore(PeerConfiguration configuration, String fileId) {
         this.configuration = configuration;
-        this.file = file;
+        this.fileId = fileId;
     }
 
     @Override
     public void run() {
         try {
+            FileInfo file = configuration.getPeerState().getFile(fileId);
             for (ChunkPair chunk : file.getChunks()) {
                 byte[] msg = this.configuration.getMessageFactory().getGetchunkMessage(this.configuration.getPeerId(), file.getFileId(), chunk.getChunkNo());
 

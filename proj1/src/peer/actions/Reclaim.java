@@ -24,15 +24,13 @@ public class Reclaim extends Thread {
 
 
             // calcular espaço ocupado
-            float occupiedSpace = 0;
-            List<ChunkInfo> peerChunks = this.configuration.getPeerState().getChunks();
-            for (ChunkInfo chunk : peerChunks) {
-                occupiedSpace += chunk.getSize();
-            }
+            float occupiedSpace = configuration.getPeerState().getOccupiedStorage();
 
             System.out.println("Occupied space: " + occupiedSpace);
 
             if (availableSpaceDesired >= occupiedSpace) return;
+
+            List<ChunkInfo> peerChunks = configuration.getPeerState().getChunks();
 
             // remover e mandar msg para cada chunk que seja necessário remover (os que tiverem perceived degree maior que o desired primeiro)
             Collections.sort(peerChunks, new Comparator<ChunkInfo>() {
@@ -71,7 +69,7 @@ public class Reclaim extends Thread {
                 }
                 
                 fileManager.deleteChunk(chunk.getFileId(), chunk.getChunkNo());
-                this.configuration.getPeerState().removeChunk(chunk);
+                this.configuration.getPeerState().deleteChunk(chunk);
             }
 
         } catch(Exception e) {
