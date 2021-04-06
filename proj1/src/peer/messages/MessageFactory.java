@@ -72,4 +72,15 @@ public class MessageFactory {
             .addBody(body);
         return builder.getMessage();
     }
+
+    public byte[] getRemovedMessage(String senderId, String fileId, int chunkNo) throws ArgsException {
+        MessageBuilder builder = new MessageBuilder();
+        builder
+            .addVersion(versionN, versionM)
+            .addMessageType(MessageType.REMOVED)
+            .addSenderId(senderId)
+            .addFileId(fileId)
+            .addChunkNo(String.valueOf(chunkNo));
+        return builder.getMessage();
+    }
 }

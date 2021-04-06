@@ -19,7 +19,8 @@ public class PeerConfiguration {
     private final PeerState state;
     private final Map<String, List<Integer>> storedCount = new HashMap<>();   // need to either store the ids of the peers who have alread sent STORED or reset the counter in each turn
     private final Map<String, List<Integer>> chunksReceived = new HashMap<>(); 
-    private final Map<String, Map<Integer, byte[]>> chunksDataReceived = new HashMap<>(); 
+    private final List<String> putchunksReceived = new ArrayList<>();
+    private final Map<String, Map<Integer, byte[]>> chunksDataReceived = new HashMap<>();
 
     public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
         this.protocolVersion = protocolVersion;
@@ -30,6 +31,18 @@ public class PeerConfiguration {
         this.mdr = mdr;
         this.factory = new MessageFactory(1, 0);
         this.state = PeerState.read(this.getRootDir());
+    }
+
+    public void resetHasReceivedPutchunk(String fileId, int chunkNo) {
+        this.putchunksReceived.remove(fileId + chunkNo);
+    }
+
+    public boolean hasReceivedPutchunk(String fileId, int chunkNo) {
+        return this.putchunksReceived.contains(fileId + chunkNo);
+    }
+
+    public void addPutchunkReceived(String fileId, int chunkNo) {
+        this.putchunksReceived.add(fileId + chunkNo);
     }
 
     public List<byte[]> getFileChunks(String fileId) {
@@ -84,6 +97,13 @@ public class PeerConfiguration {
             chunksDataReceived.get(fileId).containsKey(chunkNo)  &&
             chunksDataReceived.get(fileId).get(chunkNo) == null /* if null it hasn't been received yet */) return true;
         return false;
+    }
+
+    public void resetStoredCount(String fileId, int chunkNo) {
+        String key = fileId + chunkNo;
+        if (this.storedCount.containsKey(key)) {
+            this.storedCount.put(key, new ArrayList<>());  // resets the count
+        }
     }
 
     public void addStoredCount(String fileId, int chunkNo, int peerId) {

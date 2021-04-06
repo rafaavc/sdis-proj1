@@ -5,11 +5,17 @@ public class ChunkInfo extends ChunkPair {
 
     private final String fileId;
     private final int desiredReplicationDegree;
+    private final float size; // KB
     
-    public ChunkInfo(String fileId, int chunkNo, int perceivedReplicationDegree, int desiredReplicationDegree) {
+    public ChunkInfo(String fileId, float size, int chunkNo, int perceivedReplicationDegree, int desiredReplicationDegree) {
         super(chunkNo, perceivedReplicationDegree);
         this.fileId = fileId;
         this.desiredReplicationDegree = desiredReplicationDegree;
+        this.size = size;
+    }
+
+    public float getSize() {
+        return this.size;
     }
 
     public String getFileId() {

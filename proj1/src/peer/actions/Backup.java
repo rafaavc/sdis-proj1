@@ -29,6 +29,7 @@ public class Backup extends Thread {
             System.out.println("I split the file into these chunks: " + chunks);
 
             for (Chunk chunk : chunks) {
+                this.configuration.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
                 byte[] msg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
                 
                 int count = 0, sleepAmount = 1000, replicationDegree = 0;

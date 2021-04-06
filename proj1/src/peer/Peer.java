@@ -17,6 +17,7 @@ import state.PeerState;
 import actions.Backup;
 import actions.Delete;
 import actions.Restore;
+import actions.Reclaim;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
@@ -84,6 +85,10 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
                 for (String fileId : fileIds) new Delete(configuration, fileId).start();
             }
         }.start();
+    }
+
+    public void reclaim(int kb) throws RemoteException {
+        new Reclaim(configuration, kb).start();
     }
 
     public PeerState getPeerState() {

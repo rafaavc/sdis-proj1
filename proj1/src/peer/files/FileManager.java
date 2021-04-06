@@ -1,7 +1,6 @@
 package files;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
@@ -35,6 +34,11 @@ public class FileManager {
         this.createDir(dir);
 
         write(fileId + "/" + chunkNo, data);
+    }
+
+    public void deleteChunk(String fileId, int chunkNo) throws IOException {
+        java.io.File f = new java.io.File(this.rootDir + "/" + fileId + "/" + chunkNo);
+        f.delete();
     }
 
     public byte[] read(String file) throws IOException {

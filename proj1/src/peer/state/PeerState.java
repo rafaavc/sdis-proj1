@@ -23,8 +23,18 @@ public class PeerState implements Serializable {
     private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
     private final Map<String, List<String>> fileNameIds = new HashMap<>();
 
+    private int maximumSpaceAvailable = -1;
+
     public PeerState(String dir) {
         this.dir = dir;
+    }
+
+    public void setMaximumSpaceAvailable(int maximumSpaceAvailable) {
+        this.maximumSpaceAvailable = maximumSpaceAvailable;
+    }
+
+    public boolean ownsFile(String fileId) {
+        return files.containsKey(fileId);
     }
 
     public List<String> getFileIds(String fileName) {
@@ -42,6 +52,10 @@ public class PeerState implements Serializable {
             fileNameIds.put(fileName, ids);
         }
         //this.write(); // TO REMOVE
+    }
+
+    public void removeChunk(ChunkInfo c) {
+        chunks.get(c.getFileId()).remove(c.getChunkNo());
     }
 
     public void addChunk(ChunkInfo c) throws IOException {
@@ -75,6 +89,16 @@ public class PeerState implements Serializable {
 
     public FileInfo getFile(String fileId) {
         return files.get(fileId);
+    }
+
+    public List<ChunkInfo> getChunks() {
+        List<ChunkInfo> res = new ArrayList<>();
+
+        for (Map<Integer, ChunkInfo> m : this.chunks.values()) {
+            for (ChunkInfo c : m.values()) res.add(c);
+        }
+
+        return res;
     }
 
     public ChunkInfo getChunk(String fileId, int chunkNo) {

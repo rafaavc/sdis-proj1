@@ -53,6 +53,13 @@ public class BackupServiceInterface {
                     }
                     stub.restore(args[2]);
                     break;
+                case "RECLAIM":
+                    if (args.length < 3) {
+                        System.err.println("To reclaim I need the maximum storage allowed.");
+                        System.exit(1);
+                    }
+                    stub.reclaim(Integer.parseInt(args[2]));
+                    break;
                 case "STATE": 
                     System.out.println(stub.getPeerState());
                     break;

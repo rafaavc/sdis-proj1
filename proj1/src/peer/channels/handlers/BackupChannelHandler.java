@@ -17,13 +17,23 @@ public class BackupChannelHandler extends Handler {
         switch(msg.getMessageType()) { 
             case PUTCHUNK:
                 try {
+                    this.configuration.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
+                    if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
+                        System.out.println("Already had chunk!");
+                        Thread.sleep(new Random().nextInt(400));
+                        this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+                        break;
+                    } else if (this.configuration.getPeerState().ownsFile(msg.getFileId())) {
+                        System.out.println("I am the file owner!");
+                        break;
+                    }
 
                     System.out.println("Storing chunk.");
                     FileManager files = new FileManager(this.configuration.getRootDir());
 
                     files.writeChunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
                     this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
-                    this.configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), msg.getChunkNo(), this.configuration.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));  // TODO: PERCEIVED
+                    this.configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), this.configuration.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));  // TODO: PERCEIVED
 
                     Thread.sleep(new Random().nextInt(400));
                     this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
