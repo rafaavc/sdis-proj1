@@ -3,6 +3,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.io.File;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;
@@ -11,7 +12,7 @@ import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
-import files.File;
+import files.ChunkedFile;
 import state.FileInfo;
 import state.PeerState;
 import actions.Backup;
@@ -54,13 +55,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
                 //     System.err.println("The file '" + fileName + "' doesn't exist in my history.");
                 //     return;
                 // }
-                java.io.File file = new java.io.File(fileName);
+                File file = new File(fileName);
                 if (!file.exists()) {
                     System.err.println("The file '" + fileName + "' doesn't exist in my history.");
                     return;
                 }
                 try {
-                    String fileId = File.getFileId(file);
+                    String fileId = ChunkedFile.generateFileId(file);
                     FileInfo f = getPeerState().getFile(fileId);
                     if (f == null) {
                         System.err.println("The file '" + fileName + "' doesn't exist in my history.");

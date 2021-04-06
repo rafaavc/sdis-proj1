@@ -8,7 +8,6 @@ import java.util.List;
 import configuration.PeerConfiguration;
 import files.FileManager;
 import state.ChunkInfo;
-import state.ChunkPair;
 
 public class Reclaim extends Thread {
     private final PeerConfiguration configuration;

@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import channels.MulticastChannel;
+import exceptions.ArgsException;
 import messages.MessageFactory;
 import state.PeerState;
 
@@ -22,7 +23,7 @@ public class PeerConfiguration {
     private final List<String> putchunksReceived = new ArrayList<>();
     private final Map<String, Map<Integer, byte[]>> chunksDataReceived = new HashMap<>();
 
-    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
+    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException, ArgsException {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;

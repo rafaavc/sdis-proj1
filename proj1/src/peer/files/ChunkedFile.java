@@ -1,6 +1,7 @@
 package files;
 
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -11,14 +12,12 @@ import java.util.List;
 import exceptions.ArgsException;
 import exceptions.ChunkSizeExceeded;
 import exceptions.InvalidChunkNo;
-import exceptions.ArgsException.Type;
 
-public class File {
+public class ChunkedFile {
     private final String fileId;
-    private final byte[] data;
     private final List<Chunk> chunks;
 
-    public static String getFileId(java.io.File file) throws IOException, NoSuchAlgorithmException {
+    public static String generateFileId(File file) throws IOException, NoSuchAlgorithmException {
         BasicFileAttributes attr = Files.readAttributes(Path.of(file.getPath()), BasicFileAttributes.class);
 
         String original = file.getPath() + attr.lastModifiedTime() + attr.creationTime() + attr.size();
@@ -34,17 +33,13 @@ public class File {
         return idBuilder.toString();
     }
 
-    public File(String path) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ArgsException, NoSuchAlgorithmException {
-        java.io.File f = new java.io.File(path);
-
-        if (!f.exists()) throw new ArgsException(Type.FILE_DOESNT_EXIST, path);
-
-        FileManager files = new FileManager(".");
-        this.data = files.read(path);
-
-        this.fileId = File.getFileId(f);
-
+    public ChunkedFile(File file, byte[] data) throws IOException, NoSuchAlgorithmException, ChunkSizeExceeded, InvalidChunkNo {
+        this.fileId = ChunkedFile.generateFileId(file);
         this.chunks = Chunk.getChunks(fileId, data);
+    }
+
+    public ChunkedFile(String path) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ArgsException, NoSuchAlgorithmException {
+        this(new File(path), new FileManager().read(path));
     }
 
     public List<Chunk> getChunks() {

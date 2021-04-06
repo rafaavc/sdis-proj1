@@ -2,18 +2,27 @@ package files;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import exceptions.ArgsException;
+import exceptions.ArgsException.Type;
+
 public class FileManager {
     private final String rootDir;
+
     public FileManager(String rootDir) {
         this.rootDir = rootDir;
         this.createDir(rootDir);
     }
+    
+    public FileManager() {
+        this.rootDir = ".";
+    }
 
     public void createDir(String path) {
-        java.io.File dir = new java.io.File(path);
+        File dir = new File(path);
         if (!dir.exists()) dir.mkdirs();
     }
 
@@ -37,18 +46,23 @@ public class FileManager {
     }
 
     public void deleteChunk(String fileId, int chunkNo) throws IOException {
-        java.io.File f = new java.io.File(this.rootDir + "/" + fileId + "/" + chunkNo);
+        File f = new File(this.rootDir + "/" + fileId + "/" + chunkNo);
         f.delete();
     }
 
-    public byte[] read(String file) throws IOException {
-        FileInputStream in = new FileInputStream(this.rootDir + "/" + file);
+    public byte[] read(String file) throws IOException, ArgsException {
+        String path = this.rootDir + "/" + file;
+        
+        File f = new File(path);
+        if (!f.exists()) throw new ArgsException(Type.FILE_DOESNT_EXIST, path);
+
+        FileInputStream in = new FileInputStream(path);
         byte[] data = in.readAllBytes();
         in.close();
         return data;
     }
 
-    public byte[] readChunk(String fileId, int chunkNo) throws IOException {
+    public byte[] readChunk(String fileId, int chunkNo) throws IOException, ArgsException {
         String dir = this.rootDir + "/" + fileId;
         this.createDir(dir);
 
@@ -56,10 +70,10 @@ public class FileManager {
     }
 
     public void deleteFileChunks(String fileId) {
-        java.io.File fileFolder = new java.io.File(this.rootDir + "/" + fileId);
+        File fileFolder = new File(this.rootDir + "/" + fileId);
         if (!fileFolder.exists()) return;
 
-        for (java.io.File chunk : fileFolder.listFiles()) chunk.delete();
+        for (File chunk : fileFolder.listFiles()) chunk.delete();
 
         fileFolder.delete();
     }

@@ -2,7 +2,7 @@ package messages;
 
 import java.util.Arrays;
 
-import messages.MessageBuilder.MessageType;
+import messages.Message.MessageType;
 
 public class MessageParser {
 
@@ -26,35 +26,35 @@ public class MessageParser {
 
         Message message = new Message(version, senderId, fileId);
 
-        if (messageType.equals(MessageBuilder.messages.get(MessageType.PUTCHUNK))) {
+        if (messageType.equals(Message.messageTypeStrings.get(MessageType.PUTCHUNK))) {
             message.setMessageType(MessageType.PUTCHUNK);
             message.setChunkNo(Integer.parseInt(headerPieces[4]));
             message.setReplicationDeg((short) Integer.parseInt(headerPieces[5]));
             byte[] body = Arrays.copyOfRange(data, bodyStart, length);
             message.setBody(body);
 
-        } else if(messageType.equals(MessageBuilder.messages.get(MessageType.STORED))) { // TODO
+        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.STORED))) { // TODO
 
             message.setMessageType(MessageType.STORED);  
             message.setChunkNo(Integer.parseInt(headerPieces[4]));      
 
-        } else if(messageType.equals(MessageBuilder.messages.get(MessageType.GETCHUNK))) { // TODO
+        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.GETCHUNK))) { // TODO
 
             message.setMessageType(MessageType.GETCHUNK);     
             message.setChunkNo(Integer.parseInt(headerPieces[4]));
 
-        } else if (messageType.equals(MessageBuilder.messages.get(MessageType.CHUNK))) { // TODO
+        } else if (messageType.equals(Message.messageTypeStrings.get(MessageType.CHUNK))) { // TODO
             
             message.setMessageType(MessageType.CHUNK);
             message.setChunkNo(Integer.parseInt(headerPieces[4]));
             byte[] body = Arrays.copyOfRange(data, bodyStart, length);
             message.setBody(body);
 
-        } else if(messageType.equals(MessageBuilder.messages.get(MessageType.DELETE))) { // TODO
+        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.DELETE))) { // TODO
 
             message.setMessageType(MessageType.DELETE);
 
-        } else if(messageType.equals(MessageBuilder.messages.get(MessageType.REMOVED))) { // TODO
+        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.REMOVED))) { // TODO
             
             message.setMessageType(MessageType.REMOVED);     
             message.setChunkNo(Integer.parseInt(headerPieces[4]));       

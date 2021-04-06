@@ -2,6 +2,7 @@ package state;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -110,7 +111,7 @@ public class PeerState implements Serializable {
     }
 
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
-        java.io.File f = new java.io.File(dir + "/" + stateFileName);
+        File f = new File(dir + "/" + stateFileName);
         if (!f.exists()) {
             System.out.println("Didn't find a stored state, creating new one.");
             return new PeerState(dir);
@@ -129,7 +130,7 @@ public class PeerState implements Serializable {
     public void write() throws IOException {
         String filePath = this.dir + "/" + stateFileName;
 
-        java.io.File f = new java.io.File(this.dir);
+        File f = new File(this.dir);
         if (!f.exists()) f.mkdirs();
 
         FileOutputStream fout = new FileOutputStream(filePath);

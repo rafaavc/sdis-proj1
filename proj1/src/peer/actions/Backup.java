@@ -4,7 +4,7 @@ import java.util.List;
 
 import configuration.PeerConfiguration;
 import files.Chunk;
-import files.File;
+import files.ChunkedFile;
 import state.ChunkPair;
 import state.FileInfo;
 
@@ -22,7 +22,7 @@ public class Backup extends Thread {
     @Override
     public void run() {
         try {
-            File file = new File(filePath);
+            ChunkedFile file = new ChunkedFile(filePath);
             FileInfo info = new FileInfo(filePath, file.getFileId(), desiredReplicationDegree);
 
             List<Chunk> chunks = file.getChunks();
