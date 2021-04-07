@@ -61,12 +61,12 @@ public class Reclaim extends Thread {
             for (ChunkInfo chunk : chunksToRemove) {
                 byte[] msg = this.configuration.getMessageFactory().getRemovedMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
                 
-                int count = 0;
-                while(count < 5) {
+                // int count = 0;
+                // while(count < 5) {
                     this.configuration.getMC().send(msg);
-                    Thread.sleep(500);
-                    count++;
-                }
+                //     Thread.sleep(500);
+                //     count++;
+                // }
                 
                 fileManager.deleteChunk(chunk.getFileId(), chunk.getChunkNo());
                 this.configuration.getPeerState().deleteChunk(chunk);

@@ -1,6 +1,8 @@
 package channels.handlers;
 
 import messages.Message;
+import messages.PutchunkTracker;
+import messages.StoredTracker;
 import state.ChunkInfo;
 
 import java.util.Random;
@@ -14,10 +16,13 @@ public class BackupChannelHandler extends Handler {
     }
 
     public void execute(Message msg) {
-        switch(msg.getMessageType()) { 
+        PutchunkTracker putchunkTracker = configuration.getPutchunkTracker();
+        StoredTracker storedTracker = configuration.getStoredTracker();
+
+        switch(msg.getMessageType()) {
             case PUTCHUNK:
                 try {
-                    this.configuration.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
+                    putchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         System.out.println("Already had chunk!");
                         Thread.sleep(new Random().nextInt(400));
@@ -32,8 +37,8 @@ public class BackupChannelHandler extends Handler {
                     FileManager files = new FileManager(this.configuration.getRootDir());
 
                     files.writeChunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-                    this.configuration.addStoredCount(msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
-                    this.configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), this.configuration.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));  // TODO: PERCEIVED
+                    storedTracker.addStoredCount(this.configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+                    this.configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));  // TODO: PERCEIVED
 
                     Thread.sleep(new Random().nextInt(400));
                     this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));

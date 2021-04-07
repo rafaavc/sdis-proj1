@@ -1,16 +1,13 @@
 package configuration;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import channels.MulticastChannel;
 import exceptions.ArgsException;
+import messages.ChunkTracker;
 import messages.MessageFactory;
+import messages.PutchunkTracker;
+import messages.StoredTracker;
 import state.PeerState;
 
 public class PeerConfiguration {
@@ -18,10 +15,9 @@ public class PeerConfiguration {
     private final MulticastChannel mc, mdb, mdr;
     private final MessageFactory factory;
     private final PeerState state;
-    private final Map<String, List<Integer>> storedCount = new HashMap<>();   // need to either store the ids of the peers who have alread sent STORED or reset the counter in each turn
-    private final Map<String, List<Integer>> chunksReceived = new HashMap<>(); 
-    private final List<String> putchunksReceived = new ArrayList<>();
-    private final Map<String, Map<Integer, byte[]>> chunksDataReceived = new HashMap<>();
+    private final ChunkTracker chunkTracker;
+    private final PutchunkTracker putchunkTracker;
+    private final StoredTracker storedTracker;
 
     public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException, ArgsException {
         this.protocolVersion = protocolVersion;
@@ -32,101 +28,14 @@ public class PeerConfiguration {
         this.mdr = mdr;
         this.factory = new MessageFactory(1, 0);
         this.state = PeerState.read(this.getRootDir());
-    }
-
-    public void resetHasReceivedPutchunk(String fileId, int chunkNo) {
-        this.putchunksReceived.remove(fileId + chunkNo);
-    }
-
-    public boolean hasReceivedPutchunk(String fileId, int chunkNo) {
-        return this.putchunksReceived.contains(fileId + chunkNo);
-    }
-
-    public void addPutchunkReceived(String fileId, int chunkNo) {
-        this.putchunksReceived.add(fileId + chunkNo);
-    }
-
-    public List<byte[]> getFileChunks(String fileId) {
-        Collection<Integer> keys = this.chunksDataReceived.get(fileId).keySet();;
-        
-        List<Integer> keysSorted = keys.stream().collect(Collectors.toList());
-        List<byte[]> res = new ArrayList<>();
-
-        for (int key : keysSorted) res.add(this.chunksDataReceived.get(fileId).get(key));
-
-        return res;
-    }
-
-    public void startWaitingForChunk(String fileId, int chunkNo) {
-        if (!chunksDataReceived.containsKey(fileId)) chunksDataReceived.put(fileId, new HashMap<Integer, byte[]>());
-        if (!chunksDataReceived.get(fileId).containsKey(chunkNo)) chunksDataReceived.get(fileId).put(chunkNo, null);
-    }
-
-    public void addChunkReceived(String fileId, int chunkNo, byte[] data) {
-        if (isWaitingForChunk(fileId, chunkNo)) chunksDataReceived.get(fileId).put(chunkNo, data);
-
-        if (!chunksReceived.containsKey(fileId)) chunksReceived.put(fileId, new ArrayList<Integer>());
-        if (!chunksReceived.get(fileId).contains(chunkNo)) chunksReceived.get(fileId).add(chunkNo);
-    }
-
-    public boolean hasReceivedAllChunksData(String fileId) {
-        if (!chunksDataReceived.containsKey(fileId)) {
-            System.err.println("I have no entry for file with id '" + fileId + "' in the chunk reception map (not waiting for it)");
-            return true;
-        }
-        return !chunksDataReceived.get(fileId).values().contains(null);  // has received all chunks if no chunk entry has the null value
-    }
-
-    public boolean hasReceivedChunk(String fileId, int chunkNo) {
-        return chunksReceived.containsKey(fileId) && chunksReceived.get(fileId).contains(chunkNo);
-    }
-
-    public boolean hasReceivedChunkData(String fileId, int chunkNo) {
-        if (chunksDataReceived.containsKey(fileId) && 
-            chunksDataReceived.get(fileId).containsKey(chunkNo)  &&
-            chunksDataReceived.get(fileId).get(chunkNo) != null /* if null it hasn't been received yet */) return true;
-        return false;
-    }
-
-    public byte[] getReceivedChunkData(String fileId, int chunkNo) {
-        if (!hasReceivedChunkData(fileId, chunkNo)) return null;
-        return chunksDataReceived.get(fileId).get(chunkNo);
-    }
-
-    public boolean isWaitingForChunk(String fileId, int chunkNo) {
-        if (chunksDataReceived.containsKey(fileId) && 
-            chunksDataReceived.get(fileId).containsKey(chunkNo)  &&
-            chunksDataReceived.get(fileId).get(chunkNo) == null /* if null it hasn't been received yet */) return true;
-        return false;
-    }
-
-    public void resetStoredCount(String fileId, int chunkNo) {
-        String key = fileId + chunkNo;
-        if (this.storedCount.containsKey(key)) {
-            this.storedCount.put(key, new ArrayList<>());  // resets the count
-        }
-    }
-
-    public void addStoredCount(String fileId, int chunkNo, int peerId) {
-        String key = fileId + chunkNo;
-        if (this.storedCount.containsKey(key)) {
-            List<Integer> peerList = this.storedCount.get(key);
-            if (!peerList.contains(peerId)) peerList.add(peerId);
-        } else {
-            this.storedCount.put(key, new ArrayList<Integer>(peerId));
-        }
-        // should the storedCount be kept in non-volatile memory? :thinking:
-        this.state.updateChunkPerceivedRepDegree(fileId, chunkNo, this.storedCount.get(key).size()); // updates if already existing in the peer's state
-    }
-
-    public int getStoredCount(String fileId, int chunkNo) {
-        return this.storedCount.containsKey(fileId + chunkNo) ? this.storedCount.get(fileId + chunkNo).size() : 0;
+        this.chunkTracker = new ChunkTracker();
+        this.putchunkTracker = new PutchunkTracker();
+        this.storedTracker = new StoredTracker();
     }
 
     public PeerState getPeerState() {
         return state;
     }
-    
 
     public String getRootDir() {
         return this.peerId;
@@ -162,5 +71,17 @@ public class PeerConfiguration {
 
     public MulticastChannel getMDR() {
         return mdr;
+    }
+
+    public ChunkTracker getChunkTracker() {
+        return chunkTracker;
+    }
+
+    public PutchunkTracker getPutchunkTracker() {
+        return putchunkTracker;
+    }
+
+    public StoredTracker getStoredTracker() {
+        return storedTracker;
     }
 }
