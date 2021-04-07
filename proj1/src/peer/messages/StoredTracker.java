@@ -27,6 +27,7 @@ public class StoredTracker {
             peerList.add(peerId);
             this.storedCount.put(key, peerList);
         }
+
         // should the storedCount be kept in non-volatile memory? :thinking:
         state.updateChunkPerceivedRepDegree(fileId, chunkNo, this.storedCount.get(key).size()); // updates if already existing in the peer's state
     }

@@ -21,7 +21,7 @@ public class Reclaim extends Thread {
     @Override
     public void run() {
         try {
-
+            this.configuration.getPeerState().setMaximumStorageAvailable(availableSpaceDesired);
 
             // calcular espaço ocupado
             float occupiedSpace = configuration.getPeerState().getOccupiedStorage();

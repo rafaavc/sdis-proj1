@@ -33,8 +33,12 @@ public class PeerState implements Serializable {
         this.maximumSpaceAvailable = maximumSpaceAvailable;
     }
 
-    public int getMaximumStorageAvailable() {
+    public int getMaximumStorage() {
         return this.maximumSpaceAvailable;
+    }
+
+    public float getStorageAvailable() {
+        return getMaximumStorage() - getOccupiedStorage();
     }
 
     public float getOccupiedStorage() {
@@ -139,9 +143,10 @@ public class PeerState implements Serializable {
 
     @Override
     public String toString() {
-        if (chunks.isEmpty() && files.isEmpty()) return "I haven't sent any files nor backed up any chunks.\n";
 
         StringBuilder res = new StringBuilder();
+
+        if (chunks.isEmpty() && files.isEmpty()) res.append("I haven't sent any files nor backed up any chunks.\n");
 
         if (!chunks.isEmpty()) {
             res.append("I've stored these chunks:\n");
@@ -162,7 +167,7 @@ public class PeerState implements Serializable {
             }
             res.append("\n");
         }
-
+        res.append("Maximum storage: " + getMaximumStorage() + "\n");
         res.append("Occupied storage: " + getOccupiedStorage() + "\n");
 
         return res.toString();

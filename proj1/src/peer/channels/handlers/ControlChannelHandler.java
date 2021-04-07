@@ -25,6 +25,7 @@ public class ControlChannelHandler extends Handler {
         try {
             switch(msg.getMessageType()) { 
                 case STORED:
+                    //System.out.println("Received stored from peer " + msg.getSenderId() + " of file " + msg.getFileId() + ", chunk " + msg.getChunkNo());
                     // this probably works also in reclaim (because the peers send all the stored even if they have the chunk)
                     storedTracker.addStoredCount(this.configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
                     break;
@@ -46,19 +47,20 @@ public class ControlChannelHandler extends Handler {
                     }
                     break;
                 case REMOVED:
+                    // TODO the case where the peer is the file owner (update chunks replication degrees)
                     if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         ChunkInfo chunk = this.configuration.getPeerState().getChunk(msg.getFileId(), msg.getChunkNo());
                         StringBuilder sb = new StringBuilder();
 
-                        sb.append("Before updating stored, perceived = " + chunk.getPerceivedReplicationDegree());
+                        //sb.append("Before updating stored, perceived = " + chunk.getPerceivedReplicationDegree());
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
-                        sb.append("\nAfter updating stored, perceived = " + chunk.getPerceivedReplicationDegree());
+                        //sb.append("\nAfter updating stored, perceived = " + chunk.getPerceivedReplicationDegree());
 
                         System.out.println(sb.toString());
 
                         if (chunk.getPerceivedReplicationDegree() >= chunk.getDesiredReplicationDegree()) break;
 
-                        System.out.println("Received removed of " + chunk + " and its rep degree became smaller than desired.");
+                        //System.out.println("Received removed of " + chunk + " and its rep degree became smaller than desired.");
 
                         byte[] chunkData = fileManager.readChunk(chunk.getFileId(), chunk.getChunkNo());
 
@@ -72,14 +74,21 @@ public class ControlChannelHandler extends Handler {
 
                         // reset stored count
                         storedTracker.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
+
+                        // because the peer already has the count
+                        storedTracker.addStoredCount(this.configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+
                         byte[] putchunkMsg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                 
                         int count = 0, sleepAmount = 1000, replicationDegree = 0;
                         while(count < 5) {
                             this.configuration.getMDB().send(putchunkMsg);
+
                             Thread.sleep(sleepAmount);
-                            replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()) + 1, replicationDegree); // the +1 is because this peer has the chunk
+
+                            replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
                             if (replicationDegree >= chunk.getDesiredReplicationDegree()) break;
+                            
                             sleepAmount *= 2;
                             count++;
                         }
@@ -88,7 +97,6 @@ public class ControlChannelHandler extends Handler {
                         byte[] storedMsg = this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
                         this.configuration.getMC().send(storedMsg);
 
-                        System.err.println("The new replication degree: " + replicationDegree);
                         chunk.setPerceivedReplicationDegree(replicationDegree);
                     }
                     
