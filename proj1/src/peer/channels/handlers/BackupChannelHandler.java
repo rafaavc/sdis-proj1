@@ -30,7 +30,7 @@ public class BackupChannelHandler extends Handler {
                         Thread.sleep(new Random().nextInt(400));
                         this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
                         break;
-                    } else if (state.ownsFile(msg.getFileId())) {
+                    } else if (state.ownsFileWithId(msg.getFileId())) {
                         System.out.println("I am the file owner!");
                         break;
                     } else if (state.getMaximumStorage() != -1 && state.getStorageAvailable() < (msg.getBody().length / 1000.)) {

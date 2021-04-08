@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -24,7 +26,8 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
         System.out.println(this.getPeerState());
 
-        for (MulticastChannel channel : this.configuration.getChannels()) {
+        for (MulticastChannel channel : this.configuration.getChannels()) 
+        {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
         }
 
@@ -38,22 +41,37 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     /* RMI interface */
 
     public void backup(String filePath, int desiredReplicationDegree) throws RemoteException {
-        new Backup(this.configuration, filePath, desiredReplicationDegree).start();
+        Path path = Paths.get(filePath);
+        String fileName = path.getFileName().toString();
+
+        if (getPeerState().ownsFileWithName(fileName)) 
+        {
+            String fileId = getPeerState().getFileId(fileName);
+            System.out.println("The file " + fileName + " had an older version. Deleting it.");
+
+            getPeerState().deleteFile(fileId);  // done outside because it could interfere with the beckup that comes after
+            new Delete(configuration, fileId, false).start();
+        }
+
+        new Backup(configuration, filePath, desiredReplicationDegree).start();
     }
 
-    public void restore(String fileName, String fileId) throws RemoteException {
-        if (!getPeerState().ownsFile(fileId)) {
+    public void restore(String fileName) throws RemoteException {
+        if (!getPeerState().ownsFileWithName(fileName)) 
+        {
             System.err.println("The file '" + fileName + "' doesn't exist in my history.");
             return;
         }
-        new Restore(configuration, fileId).start();
+        new Restore(configuration, getPeerState().getFileId(fileName)).start();
     }
 
-    public void delete(String fileName, String fileId) throws RemoteException {
-        if (!getPeerState().ownsFile(fileId)) {
+    public void delete(String fileName) throws RemoteException {
+        if (!getPeerState().ownsFileWithName(fileName))
+        {
             System.err.println("The file '" + fileName + "' doesn't exist in my history.");
             return;
         }
+        String fileId = getPeerState().getFileId(fileName);
         new Delete(configuration, fileId).start();
     }
 

@@ -23,13 +23,15 @@ public class PeerState implements Serializable {
     private final Map<String, FileInfo> files = new HashMap<>();
     private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
 
+    private final Map<String, String> fileNameId = new HashMap<>();
+
     private int maximumSpaceAvailable = -1;
 
     public PeerState(String dir) {
         this.dir = dir;
     }
 
-    public void setMaximumStorageAvailable(int maximumSpaceAvailable) {
+    public synchronized void setMaximumStorageAvailable(int maximumSpaceAvailable) {
         this.maximumSpaceAvailable = maximumSpaceAvailable;
     }
 
@@ -47,19 +49,29 @@ public class PeerState implements Serializable {
         return occupiedStorage;
     }
 
-    public void addFile(FileInfo f) throws IOException {
-        files.put(f.getFileId(), f);
+    public String getFileId(String fileName) {
+        return fileNameId.get(fileName);
     }
 
-    public void deleteFile(String fileId) {
+    public synchronized void addFile(FileInfo f) {
+        files.put(f.getFileId(), f);
+        fileNameId.put(f.getFileName(), f.getFileId());
+    }
+
+    public synchronized void deleteFile(String fileId) {
+        fileNameId.remove(files.get(fileId).getFileName());
         this.files.remove(fileId);
     }
 
-    public boolean ownsFile(String fileId) {
+    public boolean ownsFileWithId(String fileId) {
         return files.containsKey(fileId);
     }
 
-    public void addChunk(ChunkInfo c) throws IOException {
+    public boolean ownsFileWithName(String fileName) {
+        return fileNameId.containsKey(fileName);
+    }
+
+    public synchronized void addChunk(ChunkInfo c) {
 
         if (chunks.containsKey(c.getFileId()) && !chunks.get(c.getFileId()).containsKey(c.getChunkNo())) {
             chunks.get(c.getFileId()).put(c.getChunkNo(), c);
@@ -71,7 +83,7 @@ public class PeerState implements Serializable {
         //this.write(); // TO REMOVE
     }
 
-    public void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
+    public synchronized void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
         if (chunks.containsKey(fileId)) {
             Map<Integer, ChunkInfo> fileChunks = chunks.get(fileId);
             if (fileChunks.containsKey(chunkNo)) {
@@ -80,11 +92,11 @@ public class PeerState implements Serializable {
         }
     }
 
-    public void deleteChunk(ChunkInfo c) {
+    public synchronized void deleteChunk(ChunkInfo c) {
         chunks.get(c.getFileId()).remove(c.getChunkNo());
     }
 
-    public void deleteFileChunks(String fileId) {
+    public synchronized void deleteFileChunks(String fileId) {
         this.chunks.remove(fileId);
     }
 
