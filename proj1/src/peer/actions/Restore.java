@@ -4,7 +4,7 @@ import java.util.List;
 
 import configuration.PeerConfiguration;
 import files.FileManager;
-import messages.ChunkTracker;
+import messages.trackers.ChunkTracker;
 import state.ChunkPair;
 import state.FileInfo;
 
@@ -28,6 +28,7 @@ public class Restore extends Thread {
 
                 chunkTracker.startWaitingForChunk(file.getFileId(), chunk.getChunkNo());
 
+                // TODO improve
                 int count = 0, sleepAmount = 1000;
                 while (count < 5 && !chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
                     this.configuration.getMC().send(msg);

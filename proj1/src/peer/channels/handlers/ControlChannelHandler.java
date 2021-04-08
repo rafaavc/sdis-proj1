@@ -1,9 +1,9 @@
 package channels.handlers;
 
-import messages.ChunkTracker;
+import messages.trackers.ChunkTracker;
 import messages.Message;
-import messages.StoredTracker;
-import messages.PutchunkTracker;
+import messages.trackers.StoredTracker;
+import messages.trackers.PutchunkTracker;
 import state.ChunkInfo;
 
 import java.util.Random;

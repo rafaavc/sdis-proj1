@@ -1,8 +1,8 @@
 package channels.handlers;
 
 import messages.Message;
-import messages.PutchunkTracker;
-import messages.StoredTracker;
+import messages.trackers.PutchunkTracker;
+import messages.trackers.StoredTracker;
 import state.ChunkInfo;
 import state.PeerState;
 

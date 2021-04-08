@@ -1,6 +1,6 @@
 package channels.handlers;
 
-import messages.ChunkTracker;
+import messages.trackers.ChunkTracker;
 import messages.Message;
 import configuration.PeerConfiguration;
 

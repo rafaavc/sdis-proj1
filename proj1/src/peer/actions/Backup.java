@@ -5,7 +5,7 @@ import java.util.List;
 import configuration.PeerConfiguration;
 import files.Chunk;
 import files.ChunkedFile;
-import messages.StoredTracker;
+import messages.trackers.StoredTracker;
 import state.ChunkPair;
 import state.FileInfo;
 
@@ -23,7 +23,7 @@ public class Backup extends Thread {
     @Override
     public void run() {
         try {
-            
+
             ChunkedFile file = new ChunkedFile(filePath);
             FileInfo info = new FileInfo(filePath, file.getFileId(), desiredReplicationDegree);
             StoredTracker storedTracker = configuration.getStoredTracker();

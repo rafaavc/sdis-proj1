@@ -9,12 +9,11 @@ import java.util.List;
 public class FileInfo implements Serializable {
     private static final long serialVersionUID = 8712295865807115205L;
     
-    private final String pathName, fileName, fileId;
+    private final String fileName, fileId;
     private final int desiredReplicationDegree;
     private final List<ChunkPair> chunks = new ArrayList<>();
 
     public FileInfo(String pathName, String fileId, int desiredReplicationDegree) {
-        this.pathName = pathName;
         Path path = Paths.get(pathName);
         this.fileName = path.getFileName().toString();
         this.fileId = fileId;
@@ -37,16 +36,12 @@ public class FileInfo implements Serializable {
         return fileId;
     }
 
-    public String getPathName() {
-        return pathName;
-    }
-
     public String getFileName() {
         return fileName;
     }
 
     @Override
     public String toString() {
-        return pathName + " " + fileId;
+        return fileName + ": " + fileId;
     }
 }

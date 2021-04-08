@@ -4,10 +4,10 @@ import java.io.IOException;
 
 import channels.MulticastChannel;
 import exceptions.ArgsException;
-import messages.ChunkTracker;
+import messages.trackers.ChunkTracker;
 import messages.MessageFactory;
-import messages.PutchunkTracker;
-import messages.StoredTracker;
+import messages.trackers.PutchunkTracker;
+import messages.trackers.StoredTracker;
 import state.PeerState;
 
 public class PeerConfiguration {
