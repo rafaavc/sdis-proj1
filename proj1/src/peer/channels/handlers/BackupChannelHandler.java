@@ -2,7 +2,6 @@ package channels.handlers;
 
 import messages.Message;
 import messages.trackers.PutchunkTracker;
-import java.util.Random;
 
 import channels.handlers.strategies.BackupStrategy;
 import configuration.PeerConfiguration;
@@ -25,8 +24,7 @@ public class BackupChannelHandler extends Handler {
                     putchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         System.out.println("Already had chunk!");
-                        Thread.sleep(new Random().nextInt(400));
-                        this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+                        backupStrategy.sendAlreadyHadStored(msg);
                         break;
                     } else if (peerState.ownsFileWithId(msg.getFileId())) {
                         System.out.println("I am the file owner!");

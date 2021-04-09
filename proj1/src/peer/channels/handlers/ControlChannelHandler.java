@@ -54,10 +54,10 @@ public class ControlChannelHandler extends Handler {
                     {
                         FileInfo file = peerState.getFile(msg.getFileId());
                         ChunkPair chunk = file.getChunk(msg.getChunkNo());
+                        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
                         Thread.sleep(2000);
-                        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
                         int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
                         if (count != 0) chunk.setPerceivedReplicationDegree(count);
                     }
@@ -88,12 +88,17 @@ public class ControlChannelHandler extends Handler {
                         storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 
                         byte[] putchunkMsg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
-                
+                        byte[] storedMsg = this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
+
                         int count = 0, sleepAmount = 1000, replicationDegree = 0;
                         while(count < 5) {
                             this.configuration.getMDB().send(putchunkMsg);
 
-                            Thread.sleep(sleepAmount);
+                            int randVal = new Random().nextInt(400);
+                            Thread.sleep(randVal);
+                            this.configuration.getMC().send(storedMsg);
+
+                            Thread.sleep(sleepAmount - randVal);
 
                             replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
                             if (replicationDegree >= chunk.getDesiredReplicationDegree()) break;
@@ -103,8 +108,7 @@ public class ControlChannelHandler extends Handler {
                         }
 
                         // this is for the other peers to take this one into account
-                        byte[] storedMsg = this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
-                        this.configuration.getMC().send(storedMsg);
+                        
 
                         chunk.setPerceivedReplicationDegree(replicationDegree);
                     }

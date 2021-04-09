@@ -12,4 +12,5 @@ public abstract class BackupStrategy {
         this.configuration = configuration;
     }
     public abstract void backup(Message message) throws IOException, ArgsException, Exception;
+    public abstract void sendAlreadyHadStored(Message message) throws IOException, ArgsException, Exception;
 }

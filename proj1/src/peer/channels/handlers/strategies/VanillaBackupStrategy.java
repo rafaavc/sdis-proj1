@@ -23,6 +23,14 @@ public class VanillaBackupStrategy extends BackupStrategy {
 
         configuration.getStoredTracker().addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 
+        sendStored(msg);
+    }
+
+    public void sendAlreadyHadStored(Message msg) throws IOException, ArgsException, Exception {
+        sendStored(msg);
+    }
+
+    private void sendStored(Message msg) throws IOException, ArgsException, Exception{
         Thread.sleep(new Random().nextInt(400));
         this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
     }
