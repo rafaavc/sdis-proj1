@@ -23,6 +23,7 @@ public class BackupChannelHandler extends Handler {
             case PUTCHUNK:
                 try 
                 {
+                    peerState.removeDeletedFile(msg.getFileId());
                     putchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         System.out.println("Already had chunk!");

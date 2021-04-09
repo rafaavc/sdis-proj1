@@ -57,7 +57,11 @@ public class MessageParser {
         } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.REMOVED))) { // TODO
             
             message.setMessageType(MessageType.REMOVED);     
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));       
+            message.setChunkNo(Integer.parseInt(headerPieces[4]));     
+
+        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.FILECHECK))) { // TODO
+            
+            message.setMessageType(MessageType.FILECHECK);
         } 
 
         return message;

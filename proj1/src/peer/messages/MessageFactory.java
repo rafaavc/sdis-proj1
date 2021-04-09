@@ -80,4 +80,12 @@ public class MessageFactory {
                                     chunkNo);
         return msg.getBytes();
     }
+
+    public byte[] getFilecheckMessage(String senderId, String fileId) throws ArgsException {
+        Message msg = new Message(version, 
+                                    MessageType.FILECHECK,
+                                    senderId,
+                                    fileId);
+        return msg.getBytes();
+    }
 }

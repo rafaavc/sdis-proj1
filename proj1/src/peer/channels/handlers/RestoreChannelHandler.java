@@ -27,17 +27,16 @@ public class RestoreChannelHandler extends Handler {
                     if (configuration.getProtocolVersion().equals("1.0") || !msg.getVersion().equals("1.1"))
                     {
                         // if the peer's protocol version is 1.0, then no other is accepted; otherwise, the version must be 1.1
-                        System.err.println("Received unknown protocol version (" + msg.getVersion() + ").");
+                        System.err.println("Received unknown protocol version CHUNK message (" + msg.getVersion() + ").");
                         return;
                     }
-
                     if (!chunkTracker.isWaitingForChunk(msg.getFileId(), msg.getChunkNo()))
                     {
                         chunkTracker.addChunkReceived(msg.getFileId(), msg.getChunkNo());
                         return;
                     }
 
-                    // only arrives here if the peer is in version 1.1 and the message is 1.1
+                    // only arrives here if the peer is in version 1.1 and the message is 1.1 (and is waiting for chunk)
 
                     System.out.println("Connecting to TCP: " + senderAddress.getHostAddress() + ":" + Integer.parseInt(new String(msg.getBody())));
                     Socket socket = new Socket(senderAddress, Integer.parseInt(new String(msg.getBody())));

@@ -19,7 +19,8 @@ public class Message {
         GETCHUNK,
         CHUNK,
         DELETE,
-        REMOVED
+        REMOVED,
+        FILECHECK
     }
 
     private static final String CRLF = new String(new byte[] { 0xD, 0xA });
@@ -32,6 +33,7 @@ public class Message {
         messageTypeStrings.put(MessageType.CHUNK, "CHUNK");
         messageTypeStrings.put(MessageType.DELETE, "DELETE");
         messageTypeStrings.put(MessageType.REMOVED, "REMOVED");
+        messageTypeStrings.put(MessageType.FILECHECK, "FILECHECK");
     }
 
     public Message(String version, String senderId, String fileId) {

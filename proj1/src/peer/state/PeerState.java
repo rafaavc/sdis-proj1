@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 
@@ -24,6 +25,8 @@ public class PeerState implements Serializable {
     private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
 
     private final Map<String, String> fileNameId = new HashMap<>();
+
+    private final List<String> deletedFiles = new ArrayList<>();
 
     private int maximumSpaceAvailable = -1;
 
@@ -56,6 +59,18 @@ public class PeerState implements Serializable {
     public synchronized void addFile(FileInfo f) {
         files.put(f.getFileId(), f);
         fileNameId.put(f.getFileName(), f.getFileId());
+    }
+
+    public synchronized void addDeletedFile(String fileId) {
+        if (!deletedFiles.contains(fileId)) deletedFiles.add(fileId);
+    }
+
+    public synchronized void removeDeletedFile(String fileId) {
+        deletedFiles.remove(fileId);
+    }
+
+    public synchronized boolean isDeleted(String fileId) {
+        return deletedFiles.contains(fileId);
     }
 
     public synchronized void deleteFile(String fileId) {
@@ -100,8 +115,16 @@ public class PeerState implements Serializable {
         this.chunks.remove(fileId);
     }
 
+    public Set<String> getBackedUpFileIds() {
+        return this.chunks.keySet();
+    }
+
     public FileInfo getFile(String fileId) {
         return files.get(fileId);
+    }
+
+    public boolean hasFileChunks(String fileId) {
+        return chunks.containsKey(fileId);
     }
 
     public boolean hasChunk(String fileId, int chunkNo) {

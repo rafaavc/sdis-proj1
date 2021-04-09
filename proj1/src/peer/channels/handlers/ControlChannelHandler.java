@@ -1,6 +1,7 @@
 package channels.handlers;
 
 import messages.trackers.ChunkTracker;
+import messages.trackers.DeleteTracker;
 import messages.Message;
 import messages.MessageFactory;
 import messages.trackers.StoredTracker;
@@ -29,8 +30,10 @@ public class ControlChannelHandler extends Handler {
         StoredTracker storedTracker = configuration.getStoredTracker();
         PutchunkTracker putchunkTracker = configuration.getPutchunkTracker();
         ChunkTracker chunkTracker = configuration.getChunkTracker();
-        
+        DeleteTracker deleteTracker = configuration.getDeleteTracker();
+
         try {
+            MessageFactory msgFactoryVanilla = new MessageFactory(1, 0);
             switch(msg.getMessageType()) { 
                 case STORED:
                     //System.out.println("Received stored from peer " + msg.getSenderId() + " of file " + msg.getFileId() + ", chunk " + msg.getChunkNo());
@@ -38,8 +41,23 @@ public class ControlChannelHandler extends Handler {
                     storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
                     break;
                 case DELETE:
-                    peerState.deleteFileChunks(msg.getFileId());
-                    fileManager.deleteFileChunks(msg.getFileId());
+                    if (peerState.hasFileChunks(msg.getFileId())) {
+                        peerState.deleteFileChunks(msg.getFileId());
+                        fileManager.deleteFileChunks(msg.getFileId());
+                    }
+                    peerState.addDeletedFile(msg.getFileId());
+                    deleteTracker.addDeleteReceived(msg.getFileId());
+                    break;
+                case FILECHECK:
+                    if (configuration.getProtocolVersion().equals("1.1") && peerState.isDeleted(msg.getFileId())) {
+                        deleteTracker.resetHasReceivedDelete(msg.getFileId());
+                        Thread.sleep(new Random().nextInt(400));
+
+                        if (deleteTracker.hasReceivedDelete(msg.getFileId())) break;
+                        
+                        byte[] deleteMsg = msgFactoryVanilla.getDeleteMessage(configuration.getPeerId(), msg.getFileId());
+                        configuration.getMC().send(deleteMsg);
+                    }
                     break;
                 case GETCHUNK:
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
@@ -88,10 +106,8 @@ public class ControlChannelHandler extends Handler {
                         // because this peer already has the chunk
                         storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 
-                        MessageFactory msgFactory = new MessageFactory(1, 0);
-
-                        byte[] putchunkMsg = msgFactory.getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
-                        byte[] storedMsg = msgFactory.getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
+                        byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
+                        byte[] storedMsg = msgFactoryVanilla.getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
                         int count = 0, sleepAmount = 1000, replicationDegree = 0;
                         while(count < 5) {

@@ -15,6 +15,6 @@ public class PutchunkTracker {
     }
 
     public synchronized void addPutchunkReceived(String fileId, int chunkNo) {
-        this.putchunksReceived.add(fileId + chunkNo);
+        if (!this.putchunksReceived.contains(fileId + chunkNo)) this.putchunksReceived.add(fileId + chunkNo);
     }
 }

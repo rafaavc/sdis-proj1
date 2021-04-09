@@ -20,6 +20,7 @@ public class Delete extends Thread {
 
     @Override
     public void run() {
+        configuration.getPeerState().addDeletedFile(fileId);
         if (deleteFromState) this.configuration.getPeerState().deleteFile(fileId);
         try {
             byte[] msg = new MessageFactory(1, 0).getDeleteMessage(this.configuration.getPeerId(), fileId);

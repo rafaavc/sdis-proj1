@@ -11,6 +11,7 @@ import configuration.ClientInterface;
 import configuration.PeerConfiguration;
 import state.PeerState;
 import actions.Backup;
+import actions.CheckDeleted;
 import actions.Delete;
 import actions.Restore;
 import actions.Reclaim;
@@ -30,6 +31,10 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         }
 
         System.out.println("Running on protocol version " + configuration.getProtocolVersion() + ". Ready!");
+
+        if (configuration.getProtocolVersion().equals("1.1")) {
+            new CheckDeleted(configuration).start();
+        }
     }
 
     public void writeState() throws IOException {
