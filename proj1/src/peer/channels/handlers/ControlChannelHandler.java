@@ -2,23 +2,29 @@ package channels.handlers;
 
 import messages.trackers.ChunkTracker;
 import messages.Message;
+import messages.MessageFactory;
 import messages.trackers.StoredTracker;
 import messages.trackers.PutchunkTracker;
 import state.ChunkInfo;
 import state.ChunkPair;
 import state.FileInfo;
 
+import java.net.InetAddress;
 import java.util.Random;
 
+import channels.handlers.strategies.RestoreStrategy;
 import configuration.PeerConfiguration;
 import files.FileManager;
 
 public class ControlChannelHandler extends Handler {
-    public ControlChannelHandler(PeerConfiguration configuration) {
+    private final RestoreStrategy restoreStrategy;
+
+    public ControlChannelHandler(PeerConfiguration configuration, RestoreStrategy restoreStrategy) {
         super(configuration);
+        this.restoreStrategy = restoreStrategy;
     }
 
-    public void execute(Message msg) {
+    public void execute(Message msg, InetAddress senderAddress) {
         FileManager fileManager = new FileManager(this.configuration.getPeerId());
         StoredTracker storedTracker = configuration.getStoredTracker();
         PutchunkTracker putchunkTracker = configuration.getPutchunkTracker();
@@ -40,16 +46,11 @@ public class ControlChannelHandler extends Handler {
                         Thread.sleep(new Random().nextInt(400));
 
                         if (chunkTracker.hasReceivedChunk(msg.getFileId(), msg.getChunkNo())) break;
-                        // else: send chunk
 
-                        byte[] chunkData = fileManager.readChunk(msg.getFileId(), msg.getChunkNo());
-                        byte[] chunkMsg = this.configuration.getMessageFactory().getChunkMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo(), chunkData);
-                        
-                        this.configuration.getMDR().send(chunkMsg);
+                        restoreStrategy.sendChunk(msg);
                     }
                     break;
                 case REMOVED:
-                    // TODO the case where the peer is the file owner (update chunks replication degrees)
                     if (peerState.ownsFileWithId(msg.getFileId()))
                     {
                         FileInfo file = peerState.getFile(msg.getFileId());
@@ -87,8 +88,10 @@ public class ControlChannelHandler extends Handler {
                         // because this peer already has the chunk
                         storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 
-                        byte[] putchunkMsg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
-                        byte[] storedMsg = this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
+                        MessageFactory msgFactory = new MessageFactory(1, 0);
+
+                        byte[] putchunkMsg = msgFactory.getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
+                        byte[] storedMsg = msgFactory.getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
                         int count = 0, sleepAmount = 1000, replicationDegree = 0;
                         while(count < 5) {

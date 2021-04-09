@@ -5,6 +5,7 @@ import java.util.List;
 import configuration.PeerConfiguration;
 import files.Chunk;
 import files.ChunkedFile;
+import messages.MessageFactory;
 import messages.trackers.StoredTracker;
 import state.ChunkPair;
 import state.FileInfo;
@@ -36,7 +37,7 @@ public class Backup extends Thread {
             for (Chunk chunk : chunks) {
                 storedTracker.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
                 
-                byte[] msg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
+                byte[] msg = new MessageFactory(1, 0).getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
                 
                 int count = 0, sleepAmount = 1000, replicationDegree = 0;
                 while(count < 5) {

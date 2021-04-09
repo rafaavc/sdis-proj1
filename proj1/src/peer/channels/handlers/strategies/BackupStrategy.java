@@ -1,16 +1,18 @@
 package channels.handlers.strategies;
 
-import java.io.IOException;
-
 import configuration.PeerConfiguration;
-import exceptions.ArgsException;
 import messages.Message;
+import messages.MessageFactory;
 
 public abstract class BackupStrategy {
     protected final PeerConfiguration configuration;
-    public BackupStrategy(PeerConfiguration configuration) {
+    protected final MessageFactory messageFactory;
+
+    public BackupStrategy(PeerConfiguration configuration, MessageFactory messageFactory) {
         this.configuration = configuration;
+        this.messageFactory = messageFactory;
     }
-    public abstract void backup(Message message) throws IOException, ArgsException, Exception;
-    public abstract void sendAlreadyHadStored(Message message) throws IOException, ArgsException, Exception;
+    
+    public abstract void backup(Message message) throws Exception;
+    public abstract void sendAlreadyHadStored(Message message) throws Exception;
 }

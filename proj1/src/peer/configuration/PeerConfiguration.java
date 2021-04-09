@@ -5,10 +5,12 @@ import java.io.IOException;
 import channels.MulticastChannel;
 import channels.handlers.strategies.BackupStrategy;
 import channels.handlers.strategies.EnhancedBackupStrategy;
+import channels.handlers.strategies.EnhancedRestoreStrategy;
+import channels.handlers.strategies.RestoreStrategy;
 import channels.handlers.strategies.VanillaBackupStrategy;
+import channels.handlers.strategies.VanillaRestoreStrategy;
 import exceptions.ArgsException;
 import messages.trackers.ChunkTracker;
-import messages.MessageFactory;
 import messages.trackers.PutchunkTracker;
 import messages.trackers.StoredTracker;
 import state.PeerState;
@@ -16,7 +18,6 @@ import state.PeerState;
 public class PeerConfiguration {
     private final String protocolVersion, peerId, serviceAccessPoint;
     private final MulticastChannel mc, mdb, mdr;
-    private final MessageFactory factory;
     private final PeerState state;
     private final ChunkTracker chunkTracker;
     private final PutchunkTracker putchunkTracker;
@@ -29,7 +30,6 @@ public class PeerConfiguration {
         this.mc = mc;
         this.mdb = mdb;
         this.mdr = mdr;
-        this.factory = new MessageFactory(1, 0);
         this.state = PeerState.read(this.getRootDir());
         this.chunkTracker = new ChunkTracker();
         this.putchunkTracker = new PutchunkTracker();
@@ -44,17 +44,19 @@ public class PeerConfiguration {
         return this.peerId;
     }
 
-    public MessageFactory getMessageFactory() {
-        return factory;
-    }
-
     public String getProtocolVersion() {
         return protocolVersion;
     }
 
-    public BackupStrategy getBackupStrategy() {
+    public BackupStrategy getBackupStrategy() throws ArgsException {
         if (this.protocolVersion.equals("1.0")) return new VanillaBackupStrategy(this);
         if (this.protocolVersion.equals("1.1")) return new EnhancedBackupStrategy(this);
+        return null;
+    }
+
+    public RestoreStrategy getRestoreStrategy() throws ArgsException {
+        if (this.protocolVersion.equals("1.0")) return new VanillaRestoreStrategy(this);
+        if (this.protocolVersion.equals("1.1")) return new EnhancedRestoreStrategy(this);
         return null;
     }
 

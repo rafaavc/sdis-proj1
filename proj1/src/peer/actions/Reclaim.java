@@ -7,6 +7,7 @@ import java.util.List;
 
 import configuration.PeerConfiguration;
 import files.FileManager;
+import messages.MessageFactory;
 import state.ChunkInfo;
 
 public class Reclaim extends Thread {
@@ -59,7 +60,7 @@ public class Reclaim extends Thread {
             FileManager fileManager = new FileManager(this.configuration.getRootDir());
 
             for (ChunkInfo chunk : chunksToRemove) {
-                byte[] msg = this.configuration.getMessageFactory().getRemovedMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
+                byte[] msg = new MessageFactory(1, 0).getRemovedMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
                 
                 // int count = 0;
                 // while(count < 5) {

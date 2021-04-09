@@ -39,7 +39,7 @@ public class ChannelListener extends Thread {
                         Message msg = MessageParser.parse(data, packet.getLength());
         
                         if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) return;
-                        action.execute(msg);
+                        action.execute(msg, packet.getAddress());
                     }
                 }.start();
             }

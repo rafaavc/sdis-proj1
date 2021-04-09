@@ -1,6 +1,7 @@
 package actions;
 
 import configuration.PeerConfiguration;
+import messages.MessageFactory;
 
 public class Delete extends Thread {
     private final PeerConfiguration configuration;
@@ -21,7 +22,7 @@ public class Delete extends Thread {
     public void run() {
         if (deleteFromState) this.configuration.getPeerState().deleteFile(fileId);
         try {
-            byte[] msg = this.configuration.getMessageFactory().getDeleteMessage(this.configuration.getPeerId(), fileId);
+            byte[] msg = new MessageFactory(1, 0).getDeleteMessage(this.configuration.getPeerId(), fileId);
                     
             int count = 0;
             while(count < 5) {

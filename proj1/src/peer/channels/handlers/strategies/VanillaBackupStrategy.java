@@ -1,20 +1,20 @@
 package channels.handlers.strategies;
 
-import java.io.IOException;
 import java.util.Random;
 
 import configuration.PeerConfiguration;
 import exceptions.ArgsException;
 import files.FileManager;
 import messages.Message;
+import messages.MessageFactory;
 import state.ChunkInfo;
 
 public class VanillaBackupStrategy extends BackupStrategy {
-    public VanillaBackupStrategy(PeerConfiguration configuration) {
-        super(configuration);
+    public VanillaBackupStrategy(PeerConfiguration configuration) throws ArgsException {
+        super(configuration, new MessageFactory(1, 0));
     }
 
-    public void backup(Message msg) throws IOException, ArgsException, Exception {
+    public void backup(Message msg) throws Exception {
         FileManager files = new FileManager(configuration.getRootDir());
         System.out.println("Storing chunk.");
 
@@ -26,12 +26,12 @@ public class VanillaBackupStrategy extends BackupStrategy {
         sendStored(msg);
     }
 
-    public void sendAlreadyHadStored(Message msg) throws IOException, ArgsException, Exception {
+    public void sendAlreadyHadStored(Message msg) throws Exception {
         sendStored(msg);
     }
 
-    private void sendStored(Message msg) throws IOException, ArgsException, Exception{
+    private void sendStored(Message msg) throws Exception {
         Thread.sleep(new Random().nextInt(400));
-        this.configuration.getMC().send(this.configuration.getMessageFactory().getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+        this.configuration.getMC().send(messageFactory.getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
     }
 }

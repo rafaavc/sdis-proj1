@@ -30,6 +30,11 @@ public class ChunkTracker {
         if (!chunksReceived.get(fileId).contains(chunkNo)) chunksReceived.get(fileId).add(chunkNo);
     }
 
+    public synchronized void addChunkReceived(String fileId, int chunkNo) {
+        if (!chunksReceived.containsKey(fileId)) chunksReceived.put(fileId, new ArrayList<Integer>());
+        if (!chunksReceived.get(fileId).contains(chunkNo)) chunksReceived.get(fileId).add(chunkNo);
+    }
+
     public synchronized boolean hasReceivedChunk(String fileId, int chunkNo) {
         return chunksReceived.containsKey(fileId) && chunksReceived.get(fileId).contains(chunkNo);
     }

@@ -19,6 +19,11 @@ public class MessageFactory {
     public MessageFactory(int versionN, int versionM) throws ArgsException {
         this((short) versionN, (short) versionM);
     }
+    
+    public MessageFactory(String version) {
+        // TODO validate
+        this.version = version;
+    }
 
     public byte[] getPutchunkMessage(String senderId, String fileId, int replicationDeg, int chunkNo, byte[] body) throws ArgsException {
         Message msg = new Message(version, 

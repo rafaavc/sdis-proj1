@@ -9,8 +9,6 @@ import channels.MulticastChannel;
 import channels.handlers.Handler;
 import configuration.ClientInterface;
 import configuration.PeerConfiguration;
-import exceptions.ChunkSizeExceeded;
-import exceptions.InvalidChunkNo;
 import state.PeerState;
 import actions.Backup;
 import actions.Delete;
@@ -21,7 +19,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     private static final long serialVersionUID = 5157944159616018684L;
     private final PeerConfiguration configuration;
 
-    public Peer(PeerConfiguration configuration) throws IOException, ChunkSizeExceeded, InvalidChunkNo, ClassNotFoundException {
+    public Peer(PeerConfiguration configuration) throws Exception {
         this.configuration = configuration;
 
         System.out.println(this.getPeerState());

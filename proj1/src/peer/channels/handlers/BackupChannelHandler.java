@@ -3,6 +3,8 @@ package channels.handlers;
 import messages.Message;
 import messages.trackers.PutchunkTracker;
 
+import java.net.InetAddress;
+
 import channels.handlers.strategies.BackupStrategy;
 import configuration.PeerConfiguration;
 
@@ -16,7 +18,7 @@ public class BackupChannelHandler extends Handler {
         this.backupStrategy = backupStrategy;
     }
 
-    public void execute(Message msg) {
+    public void execute(Message msg, InetAddress senderAddress) {
         switch(msg.getMessageType()) {
             case PUTCHUNK:
                 try 

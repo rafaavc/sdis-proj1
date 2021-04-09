@@ -40,7 +40,7 @@ public class Main {
         });
     }
 
-    public static PeerConfiguration parseArgs(String args[]) throws ArgsException, NumberFormatException, IOException, ClassNotFoundException {
+    public static PeerConfiguration parseArgs(String args[]) throws Exception {
         if (args.length != 9) throw new ArgsException(ArgsException.Type.ARGS_LENGTH);
 
         // Need to verify better
