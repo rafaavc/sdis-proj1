@@ -5,12 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-import channels.ChannelListener;
 import channels.MulticastChannel;
 import channels.MulticastChannel.ChannelType;
-import channels.handlers.BackupChannelHandler;
-import channels.handlers.ControlChannelHandler;
-import channels.handlers.RestoreChannelHandler;
 import configuration.PeerConfiguration;
 import exceptions.ArgsException;
 
@@ -56,10 +52,6 @@ public class Main {
         MulticastChannel mdr = new MulticastChannel(ChannelType.RESTORE, args[7], Integer.parseInt(args[8])); // Multicast data restore
 
         PeerConfiguration configuration = new PeerConfiguration(protocolVersion, peerId, serviceAccessPoint, mc, mdb, mdr);
-
-        new ChannelListener(mc, new ControlChannelHandler(configuration)).start();
-        new ChannelListener(mdb, new BackupChannelHandler(configuration)).start();
-        new ChannelListener(mdr, new RestoreChannelHandler(configuration)).start();
 
         return configuration;
     } 

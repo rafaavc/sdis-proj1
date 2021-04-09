@@ -31,7 +31,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
         }
 
-        System.out.println("Ready!");
+        System.out.println("Running on protocol version " + configuration.getProtocolVersion() + ". Ready!");
     }
 
     public void writeState() throws IOException {

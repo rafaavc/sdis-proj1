@@ -164,6 +164,7 @@ public class PeerState implements Serializable {
             res.append("I've stored these chunks:\n");
             for (Map<Integer, ChunkInfo> chunks : chunks.values()) {
                 for (ChunkInfo chunk : chunks.values()) {
+                    res.append("- ");
                     res.append(chunk);
                     res.append("\n");
                 }
@@ -174,6 +175,7 @@ public class PeerState implements Serializable {
         if (!files.isEmpty()) {
             res.append("I've sent these files for backup:\n");
             for (FileInfo file : files.values()) {
+                res.append("- ");
                 res.append(file);
                 res.append("\n");
             }

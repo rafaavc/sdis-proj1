@@ -3,6 +3,9 @@ package configuration;
 import java.io.IOException;
 
 import channels.MulticastChannel;
+import channels.handlers.strategies.BackupStrategy;
+import channels.handlers.strategies.EnhancedBackupStrategy;
+import channels.handlers.strategies.VanillaBackupStrategy;
 import exceptions.ArgsException;
 import messages.trackers.ChunkTracker;
 import messages.MessageFactory;
@@ -47,6 +50,12 @@ public class PeerConfiguration {
 
     public String getProtocolVersion() {
         return protocolVersion;
+    }
+
+    public BackupStrategy getBackupStrategy() {
+        if (this.protocolVersion.equals("1.0")) return new VanillaBackupStrategy(this);
+        if (this.protocolVersion.equals("1.1")) return new EnhancedBackupStrategy(this);
+        return null;
     }
 
     public String getPeerId() {

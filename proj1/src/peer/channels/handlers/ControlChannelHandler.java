@@ -29,14 +29,14 @@ public class ControlChannelHandler extends Handler {
                 case STORED:
                     //System.out.println("Received stored from peer " + msg.getSenderId() + " of file " + msg.getFileId() + ", chunk " + msg.getChunkNo());
                     // this works also in reclaim (because the peers send all the stored even if they have the chunk)
-                    storedTracker.addStoredCount(this.configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
+                    storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
                     break;
                 case DELETE:
-                    this.configuration.getPeerState().deleteFileChunks(msg.getFileId());
+                    peerState.deleteFileChunks(msg.getFileId());
                     fileManager.deleteFileChunks(msg.getFileId());
                     break;
                 case GETCHUNK:
-                    if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
+                    if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         Thread.sleep(new Random().nextInt(400));
 
                         if (chunkTracker.hasReceivedChunk(msg.getFileId(), msg.getChunkNo())) break;
@@ -50,9 +50,9 @@ public class ControlChannelHandler extends Handler {
                     break;
                 case REMOVED:
                     // TODO the case where the peer is the file owner (update chunks replication degrees)
-                    if (this.configuration.getPeerState().ownsFileWithId(msg.getFileId()))
+                    if (peerState.ownsFileWithId(msg.getFileId()))
                     {
-                        FileInfo file = this.configuration.getPeerState().getFile(msg.getFileId());
+                        FileInfo file = peerState.getFile(msg.getFileId());
                         ChunkPair chunk = file.getChunk(msg.getChunkNo());
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
@@ -61,7 +61,7 @@ public class ControlChannelHandler extends Handler {
                         int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
                         if (count != 0) chunk.setPerceivedReplicationDegree(count);
                     }
-                    else if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) 
+                    else if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) 
                     {
                         // So that previously received stored don't influence the outcome
                         storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
@@ -69,7 +69,7 @@ public class ControlChannelHandler extends Handler {
                         // so that previously received putchunks don't matter
                         putchunkTracker.resetHasReceivedPutchunk(msg.getFileId(), msg.getChunkNo());
 
-                        ChunkInfo chunk = this.configuration.getPeerState().getChunk(msg.getFileId(), msg.getChunkNo());
+                        ChunkInfo chunk = peerState.getChunk(msg.getFileId(), msg.getChunkNo());
 
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
@@ -85,7 +85,7 @@ public class ControlChannelHandler extends Handler {
                         System.out.println("Restarting backup of (" + chunk + ") after receiving REMOVED.");
 
                         // because this peer already has the chunk
-                        storedTracker.addStoredCount(this.configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+                        storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 
                         byte[] putchunkMsg = this.configuration.getMessageFactory().getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                 
