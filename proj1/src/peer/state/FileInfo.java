@@ -40,8 +40,20 @@ public class FileInfo implements Serializable {
         return fileName;
     }
 
+    public ChunkPair getChunk(int chunkNo) {
+        return chunks.get(chunkNo);
+    }
+
     @Override
     public String toString() {
-        return fileName + ": " + fileId;
+        StringBuilder fileInfo = new StringBuilder();
+        fileInfo.append(fileName + ": " + fileId + ", desired rep = " + desiredReplicationDegree + "\n");
+
+        for (ChunkPair chunk : chunks)
+        {
+            fileInfo.append("\t chunk " + chunk.getChunkNo() + ": perceived rep = " + chunk.getPerceivedReplicationDegree() + "\n");
+        }
+
+        return fileInfo.toString();
     }
 }

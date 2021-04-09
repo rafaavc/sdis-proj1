@@ -5,6 +5,8 @@ import messages.Message;
 import messages.trackers.StoredTracker;
 import messages.trackers.PutchunkTracker;
 import state.ChunkInfo;
+import state.ChunkPair;
+import state.FileInfo;
 
 import java.util.Random;
 
@@ -48,8 +50,19 @@ public class ControlChannelHandler extends Handler {
                     break;
                 case REMOVED:
                     // TODO the case where the peer is the file owner (update chunks replication degrees)
-                    if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) {
+                    if (this.configuration.getPeerState().ownsFileWithId(msg.getFileId()))
+                    {
+                        FileInfo file = this.configuration.getPeerState().getFile(msg.getFileId());
+                        ChunkPair chunk = file.getChunk(msg.getChunkNo());
+                        chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
+                        Thread.sleep(2000);
+                        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
+                        int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                        if (count != 0) chunk.setPerceivedReplicationDegree(count);
+                    }
+                    else if (this.configuration.getPeerState().hasChunk(msg.getFileId(), msg.getChunkNo())) 
+                    {
                         // So that previously received stored don't influence the outcome
                         storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
 

@@ -36,8 +36,8 @@ public class Reclaim extends Thread {
             Collections.sort(peerChunks, new Comparator<ChunkInfo>() {
                 @Override
                 public int compare(ChunkInfo chunkInfo1, ChunkInfo chunkInfo2) {
-                    int chunkInfo1Diff = chunkInfo1.getDesiredReplicationDegree() - chunkInfo1.getPerceivedReplicationDegree();
-                    int chunkInfo2Diff = chunkInfo2.getDesiredReplicationDegree() - chunkInfo2.getPerceivedReplicationDegree();
+                    int chunkInfo1Diff = chunkInfo1.getPerceivedReplicationDegree() - chunkInfo1.getDesiredReplicationDegree();
+                    int chunkInfo2Diff = chunkInfo2.getPerceivedReplicationDegree() - chunkInfo2.getDesiredReplicationDegree();
                     return chunkInfo2Diff - chunkInfo1Diff; // order in descending
                 }
             });
