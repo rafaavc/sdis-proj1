@@ -10,7 +10,8 @@ public class ArgsException extends Exception {
         VERSION_NO,
         CHUNK_NO,
         REPLICATION_DEG,
-        FILE_DOESNT_EXIST
+        FILE_DOESNT_EXIST,
+        MESSAGE_TYPE
     }
 
     private static final HashMap<Type, String> messages = new HashMap<>();
@@ -20,7 +21,8 @@ public class ArgsException extends Exception {
         messages.put(Type.VERSION_NO, "Invalid version number. It should be <n>'.'<m>, where <n> and <m> are the ASCII codes of digits.");
         messages.put(Type.CHUNK_NO, "Invalid chunk no. Cannot exceed 6 chars.");
         messages.put(Type.REPLICATION_DEG, "Invalid replication degree. Must be a digit.");
-        messages.put(Type.FILE_DOESNT_EXIST, "File doesnt exist");
+        messages.put(Type.FILE_DOESNT_EXIST, "File doesn't exist");
+        messages.put(Type.MESSAGE_TYPE, "Message type not recognized");
     }
 
     public ArgsException(Type type) {

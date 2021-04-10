@@ -6,6 +6,7 @@ import java.net.MulticastSocket;
 import java.net.SocketException;
 
 import channels.handlers.Handler;
+import exceptions.ArgsException;
 import messages.Message;
 import messages.MessageParser;
 
@@ -36,10 +37,17 @@ public class ChannelListener extends Thread {
                     public void run() {
                         byte[] data = packet.getData();
 
-                        Message msg = MessageParser.parse(data, packet.getLength());
+                        try 
+                        {
+                            Message msg = MessageParser.parse(data, packet.getLength());
         
-                        if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) return;
-                        action.execute(msg, packet.getAddress());
+                            if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) return;
+                            action.execute(msg, packet.getAddress());
+                        } 
+                        catch(ArgsException e) 
+                        {
+                            System.err.println(e.getMessage());
+                        }
                     }
                 }.start();
             }

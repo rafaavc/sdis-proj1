@@ -2,11 +2,13 @@ package messages;
 
 import java.util.Arrays;
 
+import exceptions.ArgsException;
+import exceptions.ArgsException.Type;
 import messages.Message.MessageType;
 
 public class MessageParser {
 
-    public static Message parse(byte[] data, int length) {
+    public static Message parse(byte[] data, int length) throws ArgsException {
         int bodyStart = -1, headerEnd = -1;
         for (int i = 0; i < data.length; i++) {
             byte b = data[i];
@@ -25,46 +27,61 @@ public class MessageParser {
 
         String version = headerPieces[0], messageType = headerPieces[1], senderId = headerPieces[2], fileId = headerPieces[3];
 
+        MessageType type = getMessageType(messageType);
         Message message = new Message(version, senderId, fileId);
 
-        if (messageType.equals(Message.messageTypeStrings.get(MessageType.PUTCHUNK))) {
-            message.setMessageType(MessageType.PUTCHUNK);
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));
-            message.setReplicationDeg((short) Integer.parseInt(headerPieces[5]));
-            byte[] body = Arrays.copyOfRange(data, bodyStart, length);
-            message.setBody(body);
+        switch(type)
+        {
+            case PUTCHUNK:
+                message.setMessageType(MessageType.PUTCHUNK);
+                message.setChunkNo(Integer.parseInt(headerPieces[4]));
+                message.setReplicationDeg((short) Integer.parseInt(headerPieces[5]));
+                byte[] body = Arrays.copyOfRange(data, bodyStart, length);
+                message.setBody(body);
+                break;
 
-        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.STORED))) { // TODO
+            case STORED:
+                message.setMessageType(MessageType.STORED);  
+                message.setChunkNo(Integer.parseInt(headerPieces[4]));
+                break;
 
-            message.setMessageType(MessageType.STORED);  
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));      
-
-        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.GETCHUNK))) { // TODO
-
-            message.setMessageType(MessageType.GETCHUNK);     
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));
-
-        } else if (messageType.equals(Message.messageTypeStrings.get(MessageType.CHUNK))) { // TODO
+            case GETCHUNK:
+                message.setMessageType(MessageType.GETCHUNK);     
+                message.setChunkNo(Integer.parseInt(headerPieces[4]));
+                break;
             
-            message.setMessageType(MessageType.CHUNK);
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));
-            byte[] body = Arrays.copyOfRange(data, bodyStart, length);
-            message.setBody(body);
+            case CHUNK:
+                message.setMessageType(MessageType.CHUNK);
+                message.setChunkNo(Integer.parseInt(headerPieces[4]));
+                byte[] chunkBody = Arrays.copyOfRange(data, bodyStart, length);
+                message.setBody(chunkBody);
+                break;
 
-        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.DELETE))) { // TODO
+            case DELETE:
+                message.setMessageType(MessageType.DELETE); 
+                break;
 
-            message.setMessageType(MessageType.DELETE);
+            case REMOVED:
+                message.setMessageType(MessageType.REMOVED);     
+                message.setChunkNo(Integer.parseInt(headerPieces[4]));   
+                break;
 
-        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.REMOVED))) { // TODO
-            
-            message.setMessageType(MessageType.REMOVED);     
-            message.setChunkNo(Integer.parseInt(headerPieces[4]));     
+            case FILECHECK:
+                message.setMessageType(MessageType.FILECHECK);
+                break;
 
-        } else if(messageType.equals(Message.messageTypeStrings.get(MessageType.FILECHECK))) { // TODO
-            
-            message.setMessageType(MessageType.FILECHECK);
-        } 
+            default:
+                break;
+        }
 
         return message;
+    }
+
+    public static MessageType getMessageType(String type) throws ArgsException {
+        for (MessageType value : Message.messageTypeStrings.keySet())
+        {
+            if (type.equals(Message.messageTypeStrings.get(value))) return value; 
+        }
+        throw new ArgsException(Type.MESSAGE_TYPE, type);
     }
 }
