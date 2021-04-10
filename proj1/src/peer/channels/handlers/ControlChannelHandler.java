@@ -77,7 +77,7 @@ public class ControlChannelHandler extends Handler {
                         storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
-                        Thread.sleep(2000);
+                        Thread.sleep(5000);
                         int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
                         if (count != 0) chunk.setPerceivedReplicationDegree(count);
                     }

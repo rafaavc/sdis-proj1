@@ -17,10 +17,11 @@ public class VanillaBackupStrategy extends BackupStrategy {
 
     public void backup(Message msg) throws Exception {
         FileManager files = new FileManager(configuration.getRootDir());
+        
         System.out.println("Storing chunk.");
+        configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), configuration.getStoredTracker().getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));
 
         files.writeChunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-        configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), configuration.getStoredTracker().getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));
 
         configuration.getStoredTracker().addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
 

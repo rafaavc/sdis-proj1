@@ -93,6 +93,11 @@ public class Message {
         return body;
     }
 
+    public float getBodySizeKB() throws Exception {
+        if (this.body == null) throw new Exception("Trying to access body of message without this field.");
+        return (float) (body.length / 1000.);
+    }
+
     public String getFileId() {
         return fileId;
     }

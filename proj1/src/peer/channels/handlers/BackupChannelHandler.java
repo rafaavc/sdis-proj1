@@ -32,7 +32,7 @@ public class BackupChannelHandler extends Handler {
                     } else if (peerState.ownsFileWithId(msg.getFileId())) {
                         System.out.println("I am the file owner!");
                         break;
-                    } else if (peerState.getMaximumStorage() != -1 && peerState.getStorageAvailable() < (msg.getBody().length / 1000.)) {
+                    } else if (peerState.getMaximumStorage() != -1 && peerState.getStorageAvailable() < msg.getBodySizeKB()) {
                         System.out.println("Not enough space available for backup.");
                         break;
                     }

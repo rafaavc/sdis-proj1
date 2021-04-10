@@ -23,15 +23,21 @@ public class EnhancedBackupStrategy extends BackupStrategy {
         Thread.sleep(new Random().nextInt(400) + 400);  // this is so that it receives the STORED from the ones who already had the file first
         if (storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()) >= msg.getReplicationDeg()) return;
 
+        // check if still has space because in the time interval that passed the peer may have received other backups
+        if (configuration.getPeerState().getMaximumStorage() != -1 && configuration.getPeerState().getStorageAvailable() < msg.getBodySizeKB()) {
+            System.out.println("Not enough space available for backup.");
+            return;
+        }
+
+        System.out.println("Storing chunk.");
+        configuration.getStoredTracker().addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+        configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), configuration.getStoredTracker().getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));
+
         this.configuration.getMC().send(messageFactory.getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
 
         FileManager files = new FileManager(configuration.getRootDir());
-        System.out.println("Storing chunk.");
 
         files.writeChunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
-        configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), configuration.getStoredTracker().getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));
-
-        configuration.getStoredTracker().addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
     }
     
     public void sendAlreadyHadStored(Message msg) throws Exception {

@@ -1,6 +1,7 @@
 package actions;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
@@ -30,31 +31,65 @@ public class Backup extends Thread {
             FileInfo info = new FileInfo(filePath, file.getFileId(), desiredReplicationDegree);
             StoredTracker storedTracker = configuration.getStoredTracker();
 
-            List<Chunk> chunks = file.getChunks();
-            System.out.println("I split the file into these chunks: " + chunks);
+            Map<Chunk, byte[]> chunksToSend = new HashMap<>();
+
+            for (Chunk chunk : file.getChunks()) chunksToSend.put(chunk, null);
+
+            System.out.println("I split the file into these chunks: " + chunksToSend);
 
             this.configuration.getPeerState().addFile(info);
 
-            for (Chunk chunk : chunks) {
+            for (Chunk chunk : chunksToSend.keySet()) {
                 storedTracker.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
-                
-                byte[] msg = new MessageFactory(new ProtocolVersion(1, 0)).getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
-                
-                int count = 0, sleepAmount = 1000, replicationDegree = 0;
-                while(count < 5) {
+            }
+
+            int count = 0, sleepAmount = 1000;
+            while(count < 5)
+            {
+                for (Chunk chunk : chunksToSend.keySet()) 
+                {
+                    byte[] msg = chunksToSend.get(chunk);
+                    if (msg == null) {
+                        msg = new MessageFactory(new ProtocolVersion(1, 0)).getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
+                        chunksToSend.put(chunk, msg);
+                    }
+                    
                     this.configuration.getMDB().send(msg);
-                    Thread.sleep(sleepAmount);
-                    System.out.println("Checking stored count = " + storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()));
-                    replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
-                    if (replicationDegree >= desiredReplicationDegree) break;
-                    sleepAmount *= 2;
-                    count++;
                 }
 
-                if (replicationDegree == 0) System.err.println("Could not backup chunk (replication degree == 0).");
+                Thread.sleep(sleepAmount);
 
-                info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
+                Map<Chunk, byte[]> chunksToSendCopy = new HashMap<>(chunksToSend);
+
+                for (Chunk chunk : chunksToSendCopy.keySet()) {
+                    System.out.println("Checking stored count = " + storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()));
+                    int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
+                   
+                    if (replicationDegree >= desiredReplicationDegree) {
+                        info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
+                        chunksToSend.remove(chunk);
+                    }
+                }
+
+                if (chunksToSend.size() == 0) break;
+
+                sleepAmount *= 2;
+                count++;
             }
+            
+            for (Chunk chunk : chunksToSend.keySet()) {
+                int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
+
+                if (replicationDegree == 0) {
+                    new Delete(this.configuration, info.getFileId()).start();
+                    System.err.println("Wasn't able to backup file: chunk " + chunk.getChunkNo() + " was not backed up by any peers");
+                    return;
+                }
+                info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
+                System.out.println("Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree);
+            }
+
+            System.out.println("Backed up successfully!");
             
         } catch(Exception e) {
             System.err.println(e.getMessage());

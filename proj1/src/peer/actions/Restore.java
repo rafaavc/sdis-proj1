@@ -1,6 +1,9 @@
 package actions;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import configuration.PeerConfiguration;
 import files.FileManager;
@@ -23,27 +26,55 @@ public class Restore extends Thread {
         try {
             FileInfo file = configuration.getPeerState().getFile(fileId);
             ChunkTracker chunkTracker = configuration.getChunkTracker();
-            
-            for (ChunkPair chunk : file.getChunks()) {
-                byte[] msg = new MessageFactory(configuration.getProtocolVersion()).getGetchunkMessage(this.configuration.getPeerId(), file.getFileId(), chunk.getChunkNo());
 
+            Map<ChunkPair, byte[]> chunksToGet = new HashMap<>();
+
+            for (ChunkPair chunk : file.getChunks()) chunksToGet.put(chunk, null);
+
+            for (ChunkPair chunk : chunksToGet.keySet()) {
                 chunkTracker.startWaitingForChunk(file.getFileId(), chunk.getChunkNo());
-
-                // TODO improve
-                int count = 0, sleepAmount = 500;
-                while (count < 5 && !chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
-                    this.configuration.getMC().send(msg);
-                    Thread.sleep(sleepAmount);
-                    sleepAmount *= 2;
-                    count++;
-                }
-
-                if (!chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
-                    System.err.println("Didn't receive chunk data for chunk " + file.getFileId() + ":" + chunk.getChunkNo());
-                    return;
-                }
             }
 
+            int count = 0, sleepAmount = 1000;
+            while(count < 5)
+            {
+                for (ChunkPair chunk : chunksToGet.keySet()) 
+                {
+                    byte[] msg = chunksToGet.get(chunk);
+                    if (msg == null) {
+                        msg = new MessageFactory(configuration.getProtocolVersion()).getGetchunkMessage(this.configuration.getPeerId(), file.getFileId(), chunk.getChunkNo());
+                        chunksToGet.put(chunk, msg);
+                    }
+
+                    this.configuration.getMC().send(msg);
+                }
+
+                Thread.sleep(sleepAmount);
+                
+                Map<ChunkPair, byte[]> chunksToGetCopy = new HashMap<>(chunksToGet);
+
+                for (ChunkPair chunk : chunksToGetCopy.keySet())
+                {
+                    if (chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
+                        chunksToGet.remove(chunk);
+                    }
+                }
+
+                if (chunksToGet.size() == 0) break;
+
+                sleepAmount *= 2;
+                count++;
+            }
+
+            if (chunksToGet.size() != 0) {
+                System.out.println("Couldn't restore file, chunks missing:");
+                for (ChunkPair chunk : chunksToGet.keySet()) {
+                    System.out.println("- " + chunk.getChunkNo());
+                }
+                System.out.println();
+                return;
+            }
+        
             List<byte[]> chunks = chunkTracker.getFileChunks(file.getFileId());
             System.out.println("Received " + chunks.size() + "/" + file.getChunks().size() + " chunks.");
 

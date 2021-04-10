@@ -29,8 +29,6 @@ public class ProtocolVersion {
         String[] parts = version.split("\\.");
         if (parts.length != 2) throw new ArgsException(Type.VERSION_NO, version);
 
-
-
         construct(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         this.versionStr = version;
     }
