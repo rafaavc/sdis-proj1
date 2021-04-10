@@ -1,6 +1,7 @@
 package actions;
 
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import messages.MessageFactory;
 
 public class CheckDeleted extends Thread {
@@ -15,7 +16,7 @@ public class CheckDeleted extends Thread {
         try {
             for (String fileId : configuration.getPeerState().getBackedUpFileIds())
             {
-                byte[] msg = new MessageFactory(1, 1).getFilecheckMessage(configuration.getPeerId(), fileId);
+                byte[] msg = new MessageFactory(new ProtocolVersion(1, 1)).getFilecheckMessage(configuration.getPeerId(), fileId);
                 configuration.getMC().send(msg);
             }
         } catch(Exception e) {

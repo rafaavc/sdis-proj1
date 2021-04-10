@@ -30,12 +30,17 @@ public class Restore extends Thread {
                 chunkTracker.startWaitingForChunk(file.getFileId(), chunk.getChunkNo());
 
                 // TODO improve
-                int count = 0, sleepAmount = 1000;
+                int count = 0, sleepAmount = 500;
                 while (count < 5 && !chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
                     this.configuration.getMC().send(msg);
                     Thread.sleep(sleepAmount);
                     sleepAmount *= 2;
                     count++;
+                }
+
+                if (!chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) {
+                    System.err.println("Didn't receive chunk data for chunk " + file.getFileId() + ":" + chunk.getChunkNo());
+                    return;
                 }
             }
 

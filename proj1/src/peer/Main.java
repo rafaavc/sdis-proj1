@@ -8,6 +8,7 @@ import java.rmi.registry.Registry;
 import channels.MulticastChannel;
 import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import exceptions.ArgsException;
 
 public class Main {
@@ -51,7 +52,7 @@ public class Main {
         MulticastChannel mdb = new MulticastChannel(ChannelType.BACKUP, args[5], Integer.parseInt(args[6])); // Multicast data backup
         MulticastChannel mdr = new MulticastChannel(ChannelType.RESTORE, args[7], Integer.parseInt(args[8])); // Multicast data restore
 
-        PeerConfiguration configuration = new PeerConfiguration(protocolVersion, peerId, serviceAccessPoint, mc, mdb, mdr);
+        PeerConfiguration configuration = new PeerConfiguration(new ProtocolVersion(protocolVersion), peerId, serviceAccessPoint, mc, mdb, mdr);
 
         return configuration;
     } 

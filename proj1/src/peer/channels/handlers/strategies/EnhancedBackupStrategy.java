@@ -3,6 +3,7 @@ package channels.handlers.strategies;
 import java.util.Random;
 
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import exceptions.ArgsException;
 import files.FileManager;
 import messages.Message;
@@ -12,7 +13,7 @@ import state.ChunkInfo;
 
 public class EnhancedBackupStrategy extends BackupStrategy {
     public EnhancedBackupStrategy(PeerConfiguration configuration) throws ArgsException {
-        super(configuration, new MessageFactory(1, 0)); // the messages are exactly equal to 1.0
+        super(configuration, new MessageFactory(new ProtocolVersion(1, 0))); // the messages are exactly equal to 1.0
     }
 
     public void backup(Message msg) throws Exception {

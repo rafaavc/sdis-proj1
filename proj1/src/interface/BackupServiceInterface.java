@@ -1,13 +1,13 @@
-import java.rmi.AccessException;
 import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import configuration.ClientInterface;
+import exceptions.ArgsException;
+import exceptions.ArgsException.Type;
 
 public class BackupServiceInterface {
-    public static void main(String[] args) throws AccessException, RemoteException, NotBoundException {
+    public static void main(String[] args) throws Exception {
         if (args.length < 2) {
             System.err.println("I need the peer's rmi registry name and the method to invoke.");
             System.exit(1);
@@ -23,12 +23,12 @@ public class BackupServiceInterface {
                     break;
                 case "BACKUP": 
                     if (args.length < 4) {
-                        System.err.println("To backup I need the file path and the desired replication degree (from 1 to 9).");
+                        System.err.println("To backup I need the file path and the desired replication degree (from 1 to 9, inclusive).");
                         System.exit(1);
                     }
                     try {
                         int desiredReplicationDegree = Integer.parseInt(args[3]);
-                        if (desiredReplicationDegree < 1 || desiredReplicationDegree > 9) throw new NumberFormatException();
+                        if (desiredReplicationDegree < 1 || desiredReplicationDegree > 9) throw new ArgsException(Type.REPLICATION_DEG, String.valueOf(desiredReplicationDegree));
     
                         stub.backup(args[2], desiredReplicationDegree);
                     } catch(NumberFormatException e) {
@@ -67,8 +67,10 @@ public class BackupServiceInterface {
         } catch(NotBoundException e) {
             System.out.println("Could not find peer with access point '" + args[0] + "'.");
             System.exit(1);
+        } catch(ArgsException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         } catch(Exception e) {
-            System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }

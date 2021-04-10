@@ -2,6 +2,7 @@ package messages;
 
 import java.util.Arrays;
 
+import configuration.ProtocolVersion;
 import exceptions.ArgsException;
 import exceptions.ArgsException.Type;
 import messages.Message.MessageType;
@@ -28,7 +29,7 @@ public class MessageParser {
         String version = headerPieces[0], messageType = headerPieces[1], senderId = headerPieces[2], fileId = headerPieces[3];
 
         MessageType type = getMessageType(messageType);
-        Message message = new Message(version, senderId, fileId);
+        Message message = new Message(new ProtocolVersion(version), senderId, fileId);
 
         switch(type)
         {
@@ -36,6 +37,7 @@ public class MessageParser {
                 message.setMessageType(MessageType.PUTCHUNK);
                 message.setChunkNo(Integer.parseInt(headerPieces[4]));
                 message.setReplicationDeg((short) Integer.parseInt(headerPieces[5]));
+
                 byte[] body = Arrays.copyOfRange(data, bodyStart, length);
                 message.setBody(body);
                 break;
@@ -53,6 +55,7 @@ public class MessageParser {
             case CHUNK:
                 message.setMessageType(MessageType.CHUNK);
                 message.setChunkNo(Integer.parseInt(headerPieces[4]));
+
                 byte[] chunkBody = Arrays.copyOfRange(data, bodyStart, length);
                 message.setBody(chunkBody);
                 break;

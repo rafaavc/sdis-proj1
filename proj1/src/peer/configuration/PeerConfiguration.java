@@ -17,7 +17,8 @@ import messages.trackers.DeleteTracker;
 import state.PeerState;
 
 public class PeerConfiguration {
-    private final String protocolVersion, peerId, serviceAccessPoint;
+    private final String peerId, serviceAccessPoint;
+    private final ProtocolVersion protocolVersion;
     private final MulticastChannel mc, mdb, mdr;
     private final PeerState state;
     private final ChunkTracker chunkTracker;
@@ -25,7 +26,7 @@ public class PeerConfiguration {
     private final StoredTracker storedTracker;
     private final DeleteTracker deleteTracker;
 
-    public PeerConfiguration(String protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException, ArgsException {
+    public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
@@ -47,7 +48,7 @@ public class PeerConfiguration {
         return this.peerId;
     }
 
-    public String getProtocolVersion() {
+    public ProtocolVersion getProtocolVersion() {
         return protocolVersion;
     }
 

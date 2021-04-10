@@ -4,6 +4,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import files.FileManager;
 import messages.Message;
 import messages.MessageFactory;
@@ -24,7 +25,7 @@ public class EnhancedRestoreStrategy extends RestoreStrategy {
         byte[] portData = String.valueOf(socket.getLocalPort()).getBytes();
 
         // send the chunk msg with the port
-        byte[] chunkMsg = new MessageFactory(1, 1).getChunkMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo(), portData);
+        byte[] chunkMsg = new MessageFactory(new ProtocolVersion(1, 1)).getChunkMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo(), portData);
         
         this.configuration.getMDR().send(chunkMsg);
 

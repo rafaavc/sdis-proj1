@@ -3,6 +3,7 @@ package actions;
 import java.util.List;
 
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import files.Chunk;
 import files.ChunkedFile;
 import messages.MessageFactory;
@@ -37,7 +38,7 @@ public class Backup extends Thread {
             for (Chunk chunk : chunks) {
                 storedTracker.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
                 
-                byte[] msg = new MessageFactory(1, 0).getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
+                byte[] msg = new MessageFactory(new ProtocolVersion(1, 0)).getPutchunkMessage(this.configuration.getPeerId(), file.getFileId(), desiredReplicationDegree, chunk.getChunkNo(), chunk.getData());
                 
                 int count = 0, sleepAmount = 1000, replicationDegree = 0;
                 while(count < 5) {

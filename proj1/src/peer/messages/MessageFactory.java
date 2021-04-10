@@ -1,27 +1,13 @@
 package messages;
 
+import configuration.ProtocolVersion;
 import exceptions.ArgsException;
-import exceptions.ArgsException.Type;
 import messages.Message.MessageType;
 
 public class MessageFactory {
-    private final String version;
+    private final ProtocolVersion version;
     
-    public MessageFactory(short versionN, short versionM) throws ArgsException {
-        if (versionN < 0 || versionN > 9 || versionM < 0 || versionM > 9 || (versionN == 0 && versionM == 0)) throw new ArgsException(Type.VERSION_NO);
-        StringBuilder builder = new StringBuilder();
-        builder.append(versionN);
-        builder.append('.');
-        builder.append(versionM);
-        this.version = builder.toString();
-    }
-    
-    public MessageFactory(int versionN, int versionM) throws ArgsException {
-        this((short) versionN, (short) versionM);
-    }
-    
-    public MessageFactory(String version) {
-        // TODO validate
+    public MessageFactory(ProtocolVersion version) throws ArgsException {
         this.version = version;
     }
 

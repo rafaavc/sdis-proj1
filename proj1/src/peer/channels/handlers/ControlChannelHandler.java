@@ -15,6 +15,7 @@ import java.util.Random;
 
 import channels.handlers.strategies.RestoreStrategy;
 import configuration.PeerConfiguration;
+import configuration.ProtocolVersion;
 import files.FileManager;
 
 public class ControlChannelHandler extends Handler {
@@ -33,7 +34,7 @@ public class ControlChannelHandler extends Handler {
         DeleteTracker deleteTracker = configuration.getDeleteTracker();
 
         try {
-            MessageFactory msgFactoryVanilla = new MessageFactory(1, 0);
+            MessageFactory msgFactoryVanilla = new MessageFactory(new ProtocolVersion(1, 0));
             switch(msg.getMessageType()) { 
                 case STORED:
                     //System.out.println("Received stored from peer " + msg.getSenderId() + " of file " + msg.getFileId() + ", chunk " + msg.getChunkNo());

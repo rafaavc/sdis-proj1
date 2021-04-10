@@ -25,7 +25,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
         System.out.println(this.getPeerState());
 
-        for (MulticastChannel channel : this.configuration.getChannels()) 
+        for (MulticastChannel channel : this.configuration.getChannels())
         {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
         }
@@ -52,7 +52,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             String fileId = getPeerState().getFileId(fileName);
             System.out.println("The file " + fileName + " had an older version. Deleting it.");
 
-            getPeerState().deleteFile(fileId);  // done outside because it could interfere with the beckup that comes after
+            getPeerState().deleteFile(fileId);  // done outside because it could interfere with the backup that comes after
             new Delete(configuration, fileId, false).start();
         }
 
