@@ -14,13 +14,14 @@ public class MessageParser {
                 if (data[i+1] == 0xA && data[i+2] == 0xD && data[i+3] == 0xA) {
                     if (data.length > i + 4 && data[i + 3] != ' ') bodyStart = i + 4;
                     headerEnd = i - 1;
+                    break;
                 }
             }
         }
 
         String header = new String(Arrays.copyOf(data, headerEnd + 1));
 
-        String[] headerPieces = header.split(" ");
+        String[] headerPieces = header.split(" +"); // regex for spaces (works with multiple spaces)
 
         String version = headerPieces[0], messageType = headerPieces[1], senderId = headerPieces[2], fileId = headerPieces[3];
 
