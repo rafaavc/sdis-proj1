@@ -48,6 +48,9 @@ public class FileManager {
     public void deleteChunk(String fileId, int chunkNo) throws IOException {
         File f = new File(this.rootDir + "/" + fileId + "/" + chunkNo);
         f.delete();
+        
+        File dir = new File(this.rootDir + "/" + fileId);
+        if (dir.listFiles().length == 0) dir.delete();
     }
 
     public byte[] read(String file) throws IOException, ArgsException {
