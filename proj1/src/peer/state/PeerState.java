@@ -8,10 +8,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 
@@ -21,10 +22,10 @@ public class PeerState implements Serializable {
     private static String stateFileName = "metadata";
     private final String dir;
 
-    private final Map<String, FileInfo> files = new HashMap<>();
-    private final Map<String, Map<Integer, ChunkInfo>> chunks = new HashMap<>();
+    private final ConcurrentMap<String, FileInfo> files = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ConcurrentMap<Integer, ChunkInfo>> chunks = new ConcurrentHashMap<>();
 
-    private final Map<String, String> fileNameId = new HashMap<>();
+    private final ConcurrentMap<String, String> fileNameId = new ConcurrentHashMap<>();
 
     private final List<String> deletedFiles = new ArrayList<>();
 
@@ -56,26 +57,36 @@ public class PeerState implements Serializable {
         return fileNameId.get(fileName);
     }
 
-    public synchronized void addFile(FileInfo f) {
-        files.put(f.getFileId(), f);
-        fileNameId.put(f.getFileName(), f.getFileId());
+    public void addFile(FileInfo f) {
+        synchronized (files) {
+            files.put(f.getFileId(), f);
+            fileNameId.put(f.getFileName(), f.getFileId());
+        }
     }
 
-    public synchronized void addDeletedFile(String fileId) {
-        if (!deletedFiles.contains(fileId)) deletedFiles.add(fileId);
+    public void addDeletedFile(String fileId) {
+        synchronized (deletedFiles) {
+            if (!deletedFiles.contains(fileId)) deletedFiles.add(fileId);
+        }
     }
 
-    public synchronized void removeDeletedFile(String fileId) {
-        deletedFiles.remove(fileId);
+    public void removeDeletedFile(String fileId) {
+        synchronized (deletedFiles) {
+            deletedFiles.remove(fileId);
+        }
     }
 
-    public synchronized boolean isDeleted(String fileId) {
-        return deletedFiles.contains(fileId);
+    public boolean isDeleted(String fileId) {
+        synchronized (deletedFiles) {
+            return deletedFiles.contains(fileId);
+        }
     }
 
-    public synchronized void deleteFile(String fileId) {
-        fileNameId.remove(files.get(fileId).getFileName());
-        this.files.remove(fileId);
+    public void deleteFile(String fileId) {
+        synchronized (files) {
+            fileNameId.remove(files.get(fileId).getFileName());
+            files.remove(fileId);
+        }
     }
 
     public boolean ownsFileWithId(String fileId) {
@@ -86,33 +97,40 @@ public class PeerState implements Serializable {
         return fileNameId.containsKey(fileName);
     }
 
-    public synchronized void addChunk(ChunkInfo c) {
-
-        if (chunks.containsKey(c.getFileId()) && !chunks.get(c.getFileId()).containsKey(c.getChunkNo())) {
-            chunks.get(c.getFileId()).put(c.getChunkNo(), c);
-        } else if (!chunks.containsKey(c.getFileId())) {
-            Map<Integer, ChunkInfo> info = new HashMap<>();
-            info.put(c.getChunkNo(), c);
-            chunks.put(c.getFileId(), info);
+    public void addChunk(ChunkInfo c) {
+        synchronized (chunks) {
+            if (chunks.containsKey(c.getFileId()) && !chunks.get(c.getFileId()).containsKey(c.getChunkNo())) {
+                chunks.get(c.getFileId()).put(c.getChunkNo(), c);
+            } else if (!chunks.containsKey(c.getFileId())) {
+                ConcurrentMap<Integer, ChunkInfo> info = new ConcurrentHashMap<>();
+                info.put(c.getChunkNo(), c);
+                chunks.put(c.getFileId(), info);
+            }
         }
         //this.write(); // TO REMOVE
     }
 
-    public synchronized void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
-        if (chunks.containsKey(fileId)) {
-            Map<Integer, ChunkInfo> fileChunks = chunks.get(fileId);
-            if (fileChunks.containsKey(chunkNo)) {
-                fileChunks.get(chunkNo).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
+    public void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
+        synchronized (chunks) {
+            if (chunks.containsKey(fileId)) {
+                Map<Integer, ChunkInfo> fileChunks = chunks.get(fileId);
+                if (fileChunks.containsKey(chunkNo)) {
+                    fileChunks.get(chunkNo).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
+                }
             }
         }
     }
 
-    public synchronized void deleteChunk(ChunkInfo c) {
-        chunks.get(c.getFileId()).remove(c.getChunkNo());
+    public void deleteChunk(ChunkInfo c) {
+        synchronized (chunks) {
+            chunks.get(c.getFileId()).remove(c.getChunkNo());
+        }
     }
 
-    public synchronized void deleteFileChunks(String fileId) {
-        this.chunks.remove(fileId);
+    public void deleteFileChunks(String fileId) {
+        synchronized (chunks) {
+            this.chunks.remove(fileId);
+        }
     }
 
     public Set<String> getBackedUpFileIds() {

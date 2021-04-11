@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 public class ChunkTracker {
-    private final Map<String, List<Integer>> chunksReceived = new HashMap<>(); 
-    private final Map<String, Map<Integer, byte[]>> chunksDataReceived = new HashMap<>();
+    private final ConcurrentMap<String, List<Integer>> chunksReceived = new ConcurrentHashMap<>(); 
+    private final ConcurrentMap<String, Map<Integer, byte[]>> chunksDataReceived = new ConcurrentHashMap<>();
 
     public synchronized void startWaitingForChunk(String fileId, int chunkNo) {
         if (!chunksDataReceived.containsKey(fileId)) chunksDataReceived.put(fileId, new HashMap<Integer, byte[]>());

@@ -22,14 +22,15 @@ public class Reclaim {
 
     public void execute() {
         try {
-            this.configuration.getPeerState().setMaximumStorageAvailable(availableSpaceDesired);
+            // space desired < 0 means no space limit
+            this.configuration.getPeerState().setMaximumStorageAvailable(availableSpaceDesired < 0 ? -1 : availableSpaceDesired);
 
             // calcular espaço ocupado
             float occupiedSpace = configuration.getPeerState().getOccupiedStorage();
 
             System.out.println("Occupied space: " + occupiedSpace);
 
-            if (availableSpaceDesired >= occupiedSpace) return;
+            if (availableSpaceDesired < 0 || availableSpaceDesired >= occupiedSpace) return;
 
             List<ChunkInfo> peerChunks = configuration.getPeerState().getChunks();
 

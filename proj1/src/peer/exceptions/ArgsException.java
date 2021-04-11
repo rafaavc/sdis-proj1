@@ -1,6 +1,7 @@
 package exceptions;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class ArgsException extends Exception {
     private static final long serialVersionUID = -714327807018527511L;
@@ -14,7 +15,7 @@ public class ArgsException extends Exception {
         MESSAGE_TYPE
     }
 
-    private static final HashMap<Type, String> messages = new HashMap<>();
+    private static final ConcurrentMap<Type, String> messages = new ConcurrentHashMap<>();
 
     static {
         messages.put(Type.ARGS_LENGTH, "Wrong amount of program arguments.");

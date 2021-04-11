@@ -4,6 +4,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
+import messages.trackers.StoredTracker;
 import state.ChunkInfo;
 
 public class ReclaimChunkBackup implements Runnable {
@@ -11,18 +12,20 @@ public class ReclaimChunkBackup implements Runnable {
     private int count, sleepAmount;
     private final PeerConfiguration configuration;
     private final byte[] putchunkMsg, storedMsg;
+    private final StoredTracker storedTracker;
 
-    public ReclaimChunkBackup(PeerConfiguration configuration, ChunkInfo chunk, byte[] putchunkMsg, byte[] storedMsg) {
+    public ReclaimChunkBackup(StoredTracker storedTracker, PeerConfiguration configuration, ChunkInfo chunk, byte[] putchunkMsg, byte[] storedMsg) {
         this.count = 1;
         this.sleepAmount = 1000;
         this.configuration = configuration;
         this.chunk = chunk;
         this.putchunkMsg = putchunkMsg;
         this.storedMsg = storedMsg;
+        this.storedTracker = storedTracker;
     }
 
-    private ReclaimChunkBackup(PeerConfiguration configuration, ChunkInfo chunk, byte[] putchunkMsg, byte[] storedMsg, int count, int sleepAmount) {
-        this(configuration, chunk, putchunkMsg, storedMsg);
+    private ReclaimChunkBackup(StoredTracker storedTracker, PeerConfiguration configuration, ChunkInfo chunk, byte[] putchunkMsg, byte[] storedMsg, int count, int sleepAmount) {
+        this(storedTracker, configuration, chunk, putchunkMsg, storedMsg);
         this.count = count;
         this.sleepAmount = sleepAmount;
     }
@@ -59,15 +62,17 @@ public class ReclaimChunkBackup implements Runnable {
                 threadScheduler.schedule(new Runnable() {
                     @Override
                     public void run() {                
-                        int replicationDegree = configuration.getStoredTracker().getStoredCount(chunk.getFileId(), chunk.getChunkNo());
+                        int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
                         
                         System.out.println("Checking stored count = " + replicationDegree);
 
                         if (count < 5 && replicationDegree < chunk.getDesiredReplicationDegree())
                         {
-                            threadScheduler.schedule(new ReclaimChunkBackup(configuration, chunk, putchunkMsg, storedMsg, count + 1, sleepAmount * 2), 0, TimeUnit.MILLISECONDS);
+                            threadScheduler.schedule(new ReclaimChunkBackup(storedTracker, configuration, chunk, putchunkMsg, storedMsg, count + 1, sleepAmount * 2), 0, TimeUnit.MILLISECONDS);
                             return;
                         }
+
+                        StoredTracker.removeTracker(storedTracker);
 
                         if (replicationDegree == 0)
                             System.out.println("Couldn't backup chunk " + chunk.getChunkNo() + ". Perceived = " + replicationDegree);

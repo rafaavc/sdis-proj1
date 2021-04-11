@@ -28,7 +28,6 @@ public class Backup {
 
             ChunkedFile file = new ChunkedFile(filePath);
             FileInfo info = new FileInfo(filePath, file.getFileId(), desiredReplicationDegree);
-            StoredTracker storedTracker = configuration.getStoredTracker();
 
             Map<Chunk, byte[]> chunksToSend = new HashMap<>();
 
@@ -42,11 +41,9 @@ public class Backup {
 
             this.configuration.getPeerState().addFile(info);
 
-            for (Chunk chunk : chunksToSend.keySet()) {
-                storedTracker.resetStoredCount(chunk.getFileId(), chunk.getChunkNo());
-            }
+            StoredTracker storedTracker = StoredTracker.getNewTracker();
 
-            configuration.getThreadScheduler().schedule(new ChunksBackup(configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().schedule(new ChunksBackup(storedTracker, configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
             
         } catch(Exception e) {
             System.err.println(e.getMessage());

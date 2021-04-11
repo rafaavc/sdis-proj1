@@ -9,12 +9,10 @@ import channels.handlers.strategies.BackupStrategy;
 import configuration.PeerConfiguration;
 
 public class BackupChannelHandler extends Handler {
-    private final PutchunkTracker putchunkTracker;
     private final BackupStrategy backupStrategy;
 
     public BackupChannelHandler(PeerConfiguration configuration, BackupStrategy backupStrategy) {
         super(configuration);
-        this.putchunkTracker = configuration.getPutchunkTracker();
         this.backupStrategy = backupStrategy;
     }
 
@@ -24,7 +22,7 @@ public class BackupChannelHandler extends Handler {
                 try 
                 {
                     peerState.removeDeletedFile(msg.getFileId());
-                    putchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
+                    PutchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
                         System.out.println("Already had chunk!");
                         backupStrategy.sendAlreadyHadStored(msg);

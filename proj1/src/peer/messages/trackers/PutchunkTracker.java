@@ -1,20 +1,39 @@
 package messages.trackers;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PutchunkTracker {
-    private final List<String> putchunksReceived = new ArrayList<>();
+    private final Queue<String> putchunksReceived = new ConcurrentLinkedQueue<>();
+    private static final Queue<PutchunkTracker> putchunkTrackers = new ConcurrentLinkedQueue<>();
+    private boolean active = true;
 
-    public synchronized void resetHasReceivedPutchunk(String fileId, int chunkNo) {
-        this.putchunksReceived.remove(fileId + chunkNo);
+    public static PutchunkTracker getNewTracker() {
+        PutchunkTracker tracker = new PutchunkTracker();
+        putchunkTrackers.add(tracker);
+        return tracker;
     }
 
-    public synchronized boolean hasReceivedPutchunk(String fileId, int chunkNo) {
+    public static void addPutchunkReceived(String fileId, int chunkNo) {
+        for (PutchunkTracker tracker : putchunkTrackers) {
+            tracker.addPutchunk(fileId, chunkNo);
+        }
+    }
+
+    public static void removeTracker(PutchunkTracker tracker) {
+        putchunkTrackers.remove(tracker);
+        tracker.active = false;
+    }
+
+    public boolean hasReceivedPutchunk(String fileId, int chunkNo) {
+        if (!active) System.err.println("called hasReceivedPutchunk on inactive PutchunkTracker");
         return this.putchunksReceived.contains(fileId + chunkNo);
     }
 
-    public synchronized void addPutchunkReceived(String fileId, int chunkNo) {
-        if (!this.putchunksReceived.contains(fileId + chunkNo)) this.putchunksReceived.add(fileId + chunkNo);
+    private void addPutchunk(String fileId, int chunkNo) {
+        if (!active) System.err.println("called addPutchunk on inactive PutchunkTracker");
+        synchronized (putchunksReceived) {
+            if (!this.putchunksReceived.contains(fileId + chunkNo)) this.putchunksReceived.add(fileId + chunkNo);
+        }
     }
 }

@@ -30,10 +30,7 @@ public class ControlChannelHandler extends Handler {
 
     public void execute(Message msg, InetAddress senderAddress) {
         FileManager fileManager = new FileManager(this.configuration.getPeerId());
-        StoredTracker storedTracker = configuration.getStoredTracker();
-        PutchunkTracker putchunkTracker = configuration.getPutchunkTracker();
         ChunkTracker chunkTracker = configuration.getChunkTracker();
-        DeleteTracker deleteTracker = configuration.getDeleteTracker();
         ScheduledThreadPoolExecutor threadScheduler = configuration.getThreadScheduler();
 
         try {
@@ -41,7 +38,7 @@ public class ControlChannelHandler extends Handler {
             switch(msg.getMessageType()) { 
                 case STORED:
                     peerState.removeDeletedFile(msg.getFileId());  // the file was stored by other peer
-                    storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
+                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId()));
                     break;
                 case DELETE:
                     if (peerState.hasFileChunks(msg.getFileId())) {
@@ -49,17 +46,19 @@ public class ControlChannelHandler extends Handler {
                         fileManager.deleteFileChunks(msg.getFileId());
                     }
                     peerState.addDeletedFile(msg.getFileId());
-                    deleteTracker.addDeleteReceived(msg.getFileId());
+                    DeleteTracker.addDeleteReceived(msg.getFileId());
                     break;
                 case FILECHECK:
                     if (configuration.getProtocolVersion().equals("1.1") && peerState.isDeleted(msg.getFileId())) {
-                        deleteTracker.resetHasReceivedDelete(msg.getFileId());
+                        DeleteTracker deleteTracker = DeleteTracker.getNewTracker();
 
                         threadScheduler.schedule(new Runnable() {
                             @Override
                             public void run() {
                                 if (deleteTracker.hasReceivedDelete(msg.getFileId())) return;
-                                
+
+                                DeleteTracker.removeTracker(deleteTracker);
+
                                 try 
                                 {
                                     byte[] deleteMsg = msgFactoryVanilla.getDeleteMessage(configuration.getPeerId(), msg.getFileId());
@@ -98,31 +97,28 @@ public class ControlChannelHandler extends Handler {
                     {
                         FileInfo file = peerState.getFile(msg.getFileId());
                         ChunkPair chunk = file.getChunk(msg.getChunkNo());
-                        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
+                        StoredTracker removedStoredTracker = StoredTracker.getNewTracker();
+                        
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
+
+                        removedStoredTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), (Integer countsReceived) -> {
+                            chunk.setPerceivedReplicationDegree(countsReceived);
+                        });
 
                         threadScheduler.schedule(new Runnable() {
                             @Override
                             public void run() {
-                                try 
-                                {
-                                    int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
-                                    if (count != 0) chunk.setPerceivedReplicationDegree(count);
-                                } 
-                                catch(Exception e) 
-                                {
-                                    System.err.println(e.getMessage());
-                                }
+                                StoredTracker.removeTracker(removedStoredTracker);
                             }
-                        }, 5000, TimeUnit.MILLISECONDS);
+                        }, 10, TimeUnit.SECONDS);
                     }
                     else if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) 
                     {
                         // So that previously received stored don't influence the outcome
-                        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
+                        StoredTracker removedStoredTracker = StoredTracker.getNewTracker();
 
                         // so that previously received putchunks don't matter
-                        putchunkTracker.resetHasReceivedPutchunk(msg.getFileId(), msg.getChunkNo());
+                        PutchunkTracker putchunkTracker = PutchunkTracker.getNewTracker();
 
                         ChunkInfo chunk = peerState.getChunk(msg.getFileId(), msg.getChunkNo());
 
@@ -141,15 +137,17 @@ public class ControlChannelHandler extends Handler {
                                     // if received putchunk abort (another peer already initiated backup)
                                     if (putchunkTracker.hasReceivedPutchunk(chunk.getFileId(), chunk.getChunkNo())) return;
 
+                                    PutchunkTracker.removeTracker(putchunkTracker);
+
                                     System.out.println("Restarting backup of (" + chunk + ") after receiving REMOVED.");
 
                                     // because this peer already has the chunk
-                                    storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
+                                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
 
                                     byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                                     byte[] storedMsg = msgFactoryVanilla.getStoredMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
-                                    threadScheduler.schedule(new ReclaimChunkBackup(configuration, chunk, putchunkMsg, storedMsg), 0, TimeUnit.MILLISECONDS);
+                                    threadScheduler.schedule(new ReclaimChunkBackup(removedStoredTracker, configuration, chunk, putchunkMsg, storedMsg), 0, TimeUnit.MILLISECONDS);
                                 } 
                                 catch(Exception e) 
                                 {

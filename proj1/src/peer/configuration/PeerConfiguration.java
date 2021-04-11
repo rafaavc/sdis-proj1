@@ -13,9 +13,6 @@ import channels.handlers.strategies.VanillaBackupStrategy;
 import channels.handlers.strategies.VanillaRestoreStrategy;
 import exceptions.ArgsException;
 import messages.trackers.ChunkTracker;
-import messages.trackers.PutchunkTracker;
-import messages.trackers.StoredTracker;
-import messages.trackers.DeleteTracker;
 import state.PeerState;
 
 public class PeerConfiguration {
@@ -24,9 +21,6 @@ public class PeerConfiguration {
     private final MulticastChannel mc, mdb, mdr;
     private final PeerState state;
     private final ChunkTracker chunkTracker;
-    private final PutchunkTracker putchunkTracker;
-    private final StoredTracker storedTracker;
-    private final DeleteTracker deleteTracker;
     private final ScheduledThreadPoolExecutor threadScheduler;
 
     public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
@@ -38,9 +32,6 @@ public class PeerConfiguration {
         this.mdr = mdr;
         this.state = PeerState.read(this.getRootDir());
         this.chunkTracker = new ChunkTracker();
-        this.putchunkTracker = new PutchunkTracker();
-        this.storedTracker = new StoredTracker();
-        this.deleteTracker = new DeleteTracker();
         this.threadScheduler = new ScheduledThreadPoolExecutor(20);
     }
 
@@ -106,17 +97,5 @@ public class PeerConfiguration {
 
     public ChunkTracker getChunkTracker() {
         return chunkTracker;
-    }
-
-    public PutchunkTracker getPutchunkTracker() {
-        return putchunkTracker;
-    }
-
-    public StoredTracker getStoredTracker() {
-        return storedTracker;
-    }
-
-    public DeleteTracker getDeleteTracker() {
-        return deleteTracker;
     }
 }

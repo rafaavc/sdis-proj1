@@ -21,8 +21,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
     }
 
     public void backup(Message msg) throws Exception {
-        StoredTracker storedTracker = configuration.getStoredTracker();
-        storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
+        StoredTracker storedTracker = StoredTracker.getNewTracker();
 
         threadScheduler.schedule(new Runnable() {
             @Override
@@ -38,15 +37,28 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     }
 
                     System.out.println("Storing chunk.");
-                    configuration.getStoredTracker().addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
-                    configuration.getPeerState().addChunk(new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), configuration.getStoredTracker().getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg()));
+                    StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
+
+                    ChunkInfo chunk = new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
+                    configuration.getPeerState().addChunk(chunk);
+
+                    storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), (Integer countsReceived) -> {
+                        chunk.setPerceivedReplicationDegree(countsReceived);
+                    });
 
                     configuration.getMC().send(messageFactory.getStoredMessage(configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
 
                     FileManager files = new FileManager(configuration.getRootDir());
 
                     files.writeChunk(msg.getFileId(), msg.getChunkNo(), msg.getBody());
+
                 
+                    threadScheduler.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            StoredTracker.removeTracker(storedTracker);
+                        }
+                    }, 10, TimeUnit.SECONDS);
                 } 
                 catch(Exception e) 
                 {
