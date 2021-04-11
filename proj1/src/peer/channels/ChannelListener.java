@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.SocketException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import channels.handlers.Handler;
 import exceptions.ArgsException;
@@ -13,10 +15,12 @@ import messages.MessageParser;
 public class ChannelListener extends Thread {
     private final MulticastChannel channel;
     private final Handler action;
+    private final ScheduledThreadPoolExecutor threadScheduler;
 
-    public ChannelListener(MulticastChannel channel, Handler action) {
+    public ChannelListener(MulticastChannel channel, Handler action, ScheduledThreadPoolExecutor threadScheduler) {
         this.channel = channel;
         this.action = action;
+        this.threadScheduler = threadScheduler;
     }
 
     @Override
@@ -31,8 +35,7 @@ public class ChannelListener extends Thread {
                 DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length);
 
                 socket.receive(packet);
-
-                new Thread() {
+                threadScheduler.schedule(new Runnable() {
                     @Override
                     public void run() {
                         byte[] data = packet.getData();
@@ -49,7 +52,7 @@ public class ChannelListener extends Thread {
                             System.err.println(e.getMessage());
                         }
                     }
-                }.start();
+                }, 0, TimeUnit.MILLISECONDS);
             }
         } catch (IOException e) {
             if (!(e instanceof SocketException)) {

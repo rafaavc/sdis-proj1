@@ -1,6 +1,8 @@
 package configuration;
 
 import java.io.IOException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
 
 import channels.MulticastChannel;
 import channels.handlers.strategies.BackupStrategy;
@@ -25,6 +27,7 @@ public class PeerConfiguration {
     private final PutchunkTracker putchunkTracker;
     private final StoredTracker storedTracker;
     private final DeleteTracker deleteTracker;
+    private final ScheduledThreadPoolExecutor threadScheduler;
 
     public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
         this.protocolVersion = protocolVersion;
@@ -38,6 +41,19 @@ public class PeerConfiguration {
         this.putchunkTracker = new PutchunkTracker();
         this.storedTracker = new StoredTracker();
         this.deleteTracker = new DeleteTracker();
+        this.threadScheduler = new ScheduledThreadPoolExecutor(20);
+    }
+
+    public ScheduledThreadPoolExecutor getThreadScheduler() {
+        return threadScheduler;
+    }
+
+    public int getRandomDelay(int bound) {
+        return ThreadLocalRandom.current().nextInt(bound);
+    }
+
+    public int getRandomDelay(int bound, int offset) {
+        return ThreadLocalRandom.current().nextInt(bound) + offset;
     }
 
     public PeerState getPeerState() {

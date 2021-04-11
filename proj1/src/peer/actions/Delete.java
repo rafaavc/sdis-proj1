@@ -4,25 +4,19 @@ import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
 import messages.MessageFactory;
 
-public class Delete extends Thread {
+public class Delete {
     private final PeerConfiguration configuration;
     private final String fileId;
-    private boolean deleteFromState = true;
 
     public Delete(PeerConfiguration configuration, String fileId) {
         this.configuration = configuration;
         this.fileId = fileId;
     }
 
-    public Delete(PeerConfiguration configuration, String fileId, boolean deleteFromState) {
-        this(configuration, fileId);
-        this.deleteFromState = deleteFromState;
-    }
-
-    @Override
-    public void run() {
+    public void execute() {
         configuration.getPeerState().addDeletedFile(fileId);
-        if (deleteFromState) this.configuration.getPeerState().deleteFile(fileId);
+        this.configuration.getPeerState().deleteFile(fileId);
+        
         try {
             byte[] msg = new MessageFactory(new ProtocolVersion(1, 0)).getDeleteMessage(this.configuration.getPeerId(), fileId);
                     

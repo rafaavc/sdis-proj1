@@ -11,7 +11,8 @@ import state.ChunkPair;
 import state.FileInfo;
 
 import java.net.InetAddress;
-import java.util.Random;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import channels.handlers.strategies.RestoreStrategy;
 import configuration.PeerConfiguration;
@@ -32,6 +33,7 @@ public class ControlChannelHandler extends Handler {
         PutchunkTracker putchunkTracker = configuration.getPutchunkTracker();
         ChunkTracker chunkTracker = configuration.getChunkTracker();
         DeleteTracker deleteTracker = configuration.getDeleteTracker();
+        ScheduledThreadPoolExecutor threadScheduler = configuration.getThreadScheduler();
 
         try {
             MessageFactory msgFactoryVanilla = new MessageFactory(new ProtocolVersion(1, 0));
@@ -52,21 +54,43 @@ public class ControlChannelHandler extends Handler {
                 case FILECHECK:
                     if (configuration.getProtocolVersion().equals("1.1") && peerState.isDeleted(msg.getFileId())) {
                         deleteTracker.resetHasReceivedDelete(msg.getFileId());
-                        Thread.sleep(new Random().nextInt(400));
 
-                        if (deleteTracker.hasReceivedDelete(msg.getFileId())) break;
-                        
-                        byte[] deleteMsg = msgFactoryVanilla.getDeleteMessage(configuration.getPeerId(), msg.getFileId());
-                        configuration.getMC().send(deleteMsg);
+                        threadScheduler.schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (deleteTracker.hasReceivedDelete(msg.getFileId())) return;
+                                
+                                try 
+                                {
+                                    byte[] deleteMsg = msgFactoryVanilla.getDeleteMessage(configuration.getPeerId(), msg.getFileId());
+                                    configuration.getMC().send(deleteMsg);
+                                } 
+                                catch(Exception e) 
+                                {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
+
                     }
                     break;
                 case GETCHUNK:
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
-                        Thread.sleep(new Random().nextInt(400));
 
-                        if (chunkTracker.hasReceivedChunk(msg.getFileId(), msg.getChunkNo())) break;
-
-                        restoreStrategy.sendChunk(msg);
+                        threadScheduler.schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                                try 
+                                {
+                                    if (chunkTracker.hasReceivedChunk(msg.getFileId(), msg.getChunkNo())) return;
+                                    restoreStrategy.sendChunk(msg);
+                                } 
+                                catch(Exception e) 
+                                {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
                     }
                     break;
                 case REMOVED:
@@ -77,9 +101,20 @@ public class ControlChannelHandler extends Handler {
                         storedTracker.resetStoredCount(msg.getFileId(), msg.getChunkNo());
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
-                        Thread.sleep(5000);
-                        int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
-                        if (count != 0) chunk.setPerceivedReplicationDegree(count);
+                        threadScheduler.schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                                try 
+                                {
+                                    int count = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                                    if (count != 0) chunk.setPerceivedReplicationDegree(count);
+                                } 
+                                catch(Exception e) 
+                                {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }, 5000, TimeUnit.MILLISECONDS);
                     }
                     else if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) 
                     {
@@ -97,40 +132,51 @@ public class ControlChannelHandler extends Handler {
                         if (chunk.getPerceivedReplicationDegree() >= chunk.getDesiredReplicationDegree()) break;
 
                         byte[] chunkData = fileManager.readChunk(chunk.getFileId(), chunk.getChunkNo());
-                        Thread.sleep(new Random().nextInt(400)); 
 
-                        // if received putchunk abort (another peer already initiated backup)
-                        if (putchunkTracker.hasReceivedPutchunk(chunk.getFileId(), chunk.getChunkNo())) break;
+                        threadScheduler.schedule(new Runnable() {
+                            @Override
+                            public void run() {
+                                try
+                                {
+                                    // if received putchunk abort (another peer already initiated backup)
+                                    if (putchunkTracker.hasReceivedPutchunk(chunk.getFileId(), chunk.getChunkNo())) return;
 
-                        System.out.println("Restarting backup of (" + chunk + ") after receiving REMOVED.");
+                                    System.out.println("Restarting backup of (" + chunk + ") after receiving REMOVED.");
 
-                        // because this peer already has the chunk
-                        storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+                                    // because this peer already has the chunk
+                                    storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
 
-                        byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
-                        byte[] storedMsg = msgFactoryVanilla.getStoredMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
+                                    byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
+                                    byte[] storedMsg = msgFactoryVanilla.getStoredMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
-                        int count = 0, sleepAmount = 1000, replicationDegree = 0;
-                        while(count < 5) {
-                            this.configuration.getMDB().send(putchunkMsg);
+                                    int count = 0, sleepAmount = 1000, replicationDegree = 0;
+                                    while(count < 5) {
+                                        configuration.getMDB().send(putchunkMsg);
 
-                            int randVal = new Random().nextInt(400);
-                            Thread.sleep(randVal);
-                            this.configuration.getMC().send(storedMsg);
+                                        int randVal = configuration.getRandomDelay(400);
+                                        Thread.sleep(randVal);
+                                        configuration.getMC().send(storedMsg);
 
-                            Thread.sleep(sleepAmount - randVal);
+                                        Thread.sleep(sleepAmount - randVal);
 
-                            replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
-                            if (replicationDegree >= chunk.getDesiredReplicationDegree()) break;
-                            
-                            sleepAmount *= 2;
-                            count++;
-                        }
+                                        replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
+                                        if (replicationDegree >= chunk.getDesiredReplicationDegree()) break;
+                                        
+                                        sleepAmount *= 2;
+                                        count++;
+                                    }
 
-                        // this is for the other peers to take this one into account
-                        
+                                    // this is for the other peers to take this one into account
+                                    
 
-                        chunk.setPerceivedReplicationDegree(replicationDegree);
+                                    chunk.setPerceivedReplicationDegree(replicationDegree);
+                                } 
+                                catch(Exception e) 
+                                {
+                                    System.err.println(e.getMessage());
+                                }
+                            }
+                        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
                     }
                     
                     break;

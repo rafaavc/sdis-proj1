@@ -1,6 +1,6 @@
 package channels.handlers.strategies;
 
-import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
@@ -28,12 +28,23 @@ public class VanillaBackupStrategy extends BackupStrategy {
         sendStored(msg);
     }
 
-    public void sendAlreadyHadStored(Message msg) throws Exception {
+    public void sendAlreadyHadStored(Message msg) {
         sendStored(msg);
     }
 
-    private void sendStored(Message msg) throws Exception {
-        Thread.sleep(new Random().nextInt(400));
-        this.configuration.getMC().send(messageFactory.getStoredMessage(this.configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+    private void sendStored(Message msg) {
+        configuration.getThreadScheduler().schedule(new Runnable() {
+            @Override
+            public void run() {
+                try
+                {
+                    configuration.getMC().send(messageFactory.getStoredMessage(configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+                } 
+                catch(Exception e) 
+                {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
     }
 }

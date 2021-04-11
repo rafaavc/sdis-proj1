@@ -11,7 +11,7 @@ import files.FileManager;
 import messages.MessageFactory;
 import state.ChunkInfo;
 
-public class Reclaim extends Thread {
+public class Reclaim {
     private final PeerConfiguration configuration;
     private final int availableSpaceDesired;
 
@@ -20,8 +20,7 @@ public class Reclaim extends Thread {
         this.availableSpaceDesired = availableSpaceDesired;
     }
 
-    @Override
-    public void run() {
+    public void execute() {
         try {
             this.configuration.getPeerState().setMaximumStorageAvailable(availableSpaceDesired);
 
@@ -50,7 +49,7 @@ public class Reclaim extends Thread {
 
             while(occupiedSpace > availableSpaceDesired && peerChunks.size() != 0) {
                 ChunkInfo chunk = peerChunks.get(0);
-                // TODO check if replication degree == 1
+                // if replication degree == 1 fails (shortcoming of the protocol)
                 chunksToRemove.add(chunk);
                 occupiedSpace -= chunk.getSize();
                 peerChunks.remove(0);
@@ -63,12 +62,7 @@ public class Reclaim extends Thread {
             for (ChunkInfo chunk : chunksToRemove) {
                 byte[] msg = new MessageFactory(new ProtocolVersion(1, 0)).getRemovedMessage(this.configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
                 
-                // int count = 0;
-                // while(count < 5) {
-                    this.configuration.getMC().send(msg);
-                //     Thread.sleep(500);
-                //     count++;
-                // }
+                this.configuration.getMC().send(msg);
                 
                 fileManager.deleteChunk(chunk.getFileId(), chunk.getChunkNo());
                 this.configuration.getPeerState().deleteChunk(chunk);

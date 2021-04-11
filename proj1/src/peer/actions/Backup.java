@@ -12,7 +12,7 @@ import messages.trackers.StoredTracker;
 import state.ChunkPair;
 import state.FileInfo;
 
-public class Backup extends Thread {
+public class Backup {
     private final PeerConfiguration configuration;
     private final String filePath;
     private final int desiredReplicationDegree;
@@ -23,8 +23,7 @@ public class Backup extends Thread {
         this.desiredReplicationDegree = desiredReplicationDegree;
     }
 
-    @Override
-    public void run() {
+    public void execute() {
         try {
 
             ChunkedFile file = new ChunkedFile(filePath);
@@ -81,7 +80,7 @@ public class Backup extends Thread {
                 int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
 
                 if (replicationDegree == 0) {
-                    new Delete(this.configuration, info.getFileId()).start();
+                    new Delete(this.configuration, info.getFileId()).execute();
                     System.err.println("Wasn't able to backup file: chunk " + chunk.getChunkNo() + " was not backed up by any peers");
                     return;
                 }

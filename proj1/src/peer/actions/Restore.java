@@ -11,7 +11,7 @@ import messages.trackers.ChunkTracker;
 import state.ChunkPair;
 import state.FileInfo;
 
-public class Restore extends Thread {
+public class Restore {
     private final PeerConfiguration configuration;
     private final String fileId;
 
@@ -20,8 +20,7 @@ public class Restore extends Thread {
         this.fileId = fileId;
     }
 
-    @Override
-    public void run() {
+    public void execute() {
         try {
             FileInfo file = configuration.getPeerState().getFile(fileId);
             ChunkTracker chunkTracker = configuration.getChunkTracker();
@@ -39,6 +38,8 @@ public class Restore extends Thread {
             {
                 for (ChunkPair chunk : chunksToGet.keySet()) 
                 {
+                    if (chunkTracker.hasReceivedChunkData(file.getFileId(), chunk.getChunkNo())) continue;
+                    
                     byte[] msg = chunksToGet.get(chunk);
                     if (msg == null) {
                         msg = new MessageFactory(configuration.getProtocolVersion()).getGetchunkMessage(this.configuration.getPeerId(), file.getFileId(), chunk.getChunkNo());

@@ -27,13 +27,13 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
         for (MulticastChannel channel : this.configuration.getChannels())
         {
-            new ChannelListener(channel, Handler.get(this.configuration, channel.getType())).start();
+            new ChannelListener(channel, Handler.get(this.configuration, channel.getType()), configuration.getThreadScheduler()).start();
         }
 
         System.out.println("Running on protocol version " + configuration.getProtocolVersion() + ". Ready!");
 
         if (configuration.getProtocolVersion().equals("1.1")) {
-            new CheckDeleted(configuration).start();
+            new CheckDeleted(configuration).execute();
         }
     }
 
@@ -52,11 +52,10 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             String fileId = getPeerState().getFileId(fileName);
             System.out.println("The file " + fileName + " had an older version. Deleting it.");
 
-            getPeerState().deleteFile(fileId);  // done outside because it could interfere with the backup that comes after
-            new Delete(configuration, fileId, false).start();
+            new Delete(configuration, fileId).execute();
         }
 
-        new Backup(configuration, filePath, desiredReplicationDegree).start();
+        new Backup(configuration, filePath, desiredReplicationDegree).execute();
     }
 
     public void restore(String fileName) throws RemoteException {
@@ -65,7 +64,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             System.err.println("The file '" + fileName + "' doesn't exist in my history.");
             return;
         }
-        new Restore(configuration, getPeerState().getFileId(fileName)).start();
+        new Restore(configuration, getPeerState().getFileId(fileName)).execute();
     }
 
     public void delete(String fileName) throws RemoteException {
@@ -75,11 +74,11 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             return;
         }
         String fileId = getPeerState().getFileId(fileName);
-        new Delete(configuration, fileId).start();
+        new Delete(configuration, fileId).execute();
     }
 
     public void reclaim(int kb) throws RemoteException {
-        new Reclaim(configuration, kb).start();
+        new Reclaim(configuration, kb).execute();
     }
 
     public PeerState getPeerState() {
