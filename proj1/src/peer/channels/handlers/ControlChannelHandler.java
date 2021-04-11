@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import actions.ReclaimChunkBackup;
 import channels.handlers.strategies.RestoreStrategy;
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
@@ -149,27 +150,7 @@ public class ControlChannelHandler extends Handler {
                                     byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                                     byte[] storedMsg = msgFactoryVanilla.getStoredMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
-                                    int count = 0, sleepAmount = 1000, replicationDegree = 0;
-                                    while(count < 5) {
-                                        configuration.getMDB().send(putchunkMsg);
-
-                                        int randVal = configuration.getRandomDelay(400);
-                                        Thread.sleep(randVal);
-                                        configuration.getMC().send(storedMsg);
-
-                                        Thread.sleep(sleepAmount - randVal);
-
-                                        replicationDegree = Math.max(storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()), replicationDegree);
-                                        if (replicationDegree >= chunk.getDesiredReplicationDegree()) break;
-                                        
-                                        sleepAmount *= 2;
-                                        count++;
-                                    }
-
-                                    // this is for the other peers to take this one into account
-                                    
-
-                                    chunk.setPerceivedReplicationDegree(replicationDegree);
+                                    threadScheduler.schedule(new ReclaimChunkBackup(configuration, chunk, putchunkMsg, storedMsg), 0, TimeUnit.MILLISECONDS);
                                 } 
                                 catch(Exception e) 
                                 {
