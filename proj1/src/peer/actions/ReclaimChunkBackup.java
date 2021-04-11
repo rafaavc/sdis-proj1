@@ -13,7 +13,7 @@ public class ReclaimChunkBackup implements Runnable {
     private final byte[] putchunkMsg, storedMsg;
 
     public ReclaimChunkBackup(PeerConfiguration configuration, ChunkInfo chunk, byte[] putchunkMsg, byte[] storedMsg) {
-        this.count = 0;
+        this.count = 1;
         this.sleepAmount = 1000;
         this.configuration = configuration;
         this.chunk = chunk;

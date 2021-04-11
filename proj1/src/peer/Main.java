@@ -25,12 +25,15 @@ public class Main {
 
                 for (MulticastChannel channel : configuration.getChannels()) channel.close();
                 
+                configuration.getThreadScheduler().shutdown();
+
                 try {
                     peer.writeState();
                 } catch (IOException e1) {
                     System.out.println(e1.getMessage());
                     e1.printStackTrace();
                 }
+
                 try {
                     registry.unbind(configuration.getServiceAccessPoint());
                     System.out.println("Unbound successfully."); 

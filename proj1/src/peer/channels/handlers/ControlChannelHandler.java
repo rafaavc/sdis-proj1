@@ -40,8 +40,7 @@ public class ControlChannelHandler extends Handler {
             MessageFactory msgFactoryVanilla = new MessageFactory(new ProtocolVersion(1, 0));
             switch(msg.getMessageType()) { 
                 case STORED:
-                    //System.out.println("Received stored from peer " + msg.getSenderId() + " of file " + msg.getFileId() + ", chunk " + msg.getChunkNo());
-                    // this works also in reclaim (because the peers send all the stored even if they have the chunk)
+                    peerState.removeDeletedFile(msg.getFileId());  // the file was stored by other peer
                     storedTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId())); // TODO change peer id type to int
                     break;
                 case DELETE:

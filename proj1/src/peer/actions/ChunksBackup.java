@@ -17,7 +17,7 @@ public class ChunksBackup implements Runnable {
     private final FileInfo info;
 
     public ChunksBackup(PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend) {
-        this.count = 0;
+        this.count = 1;
         this.sleepAmount = 1000;
         this.configuration = configuration;
         this.info = info;
