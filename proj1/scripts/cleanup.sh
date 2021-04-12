@@ -15,9 +15,9 @@ argc=$#
 if ((argc == 1 ))
 then
 	peer_id=$1
+	rm -rf ../filesystem/$1
 else 
-	echo "Usage: $0 [<peer_id>]]"
-	exit 1
+	rm -rf ../filesystem
 fi
 
 # Clean the directory tree for storing files

@@ -23,7 +23,7 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() {
-                Logger.log("Closing multicast sockets and ubinding from registry..."); 
+                Logger.log("Closing multicast sockets and unbinding from registry..."); 
 
                 for (MulticastChannel channel : configuration.getChannels()) channel.close();
                 
