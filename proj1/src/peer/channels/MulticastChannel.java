@@ -19,7 +19,7 @@ public class MulticastChannel {
         RESTORE
     }
 
-    private static final HashMap<ChannelType, String> messages = new HashMap<>();
+    public static final HashMap<ChannelType, String> messages = new HashMap<>();
 
     static {
         messages.put(ChannelType.CONTROL, "MC");
