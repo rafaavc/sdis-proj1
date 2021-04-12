@@ -102,8 +102,15 @@ public class ControlChannelHandler extends Handler {
                         
                         chunk.setPerceivedReplicationDegree(chunk.getPerceivedReplicationDegree() - 1);
 
-                        removedStoredTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), (Integer countsReceived) -> {
-                            chunk.setPerceivedReplicationDegree(countsReceived);
+                        removedStoredTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), () -> {
+                            synchronized(chunk) {
+                                try {
+                                    int storedCount = removedStoredTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                                    if (storedCount > chunk.getPerceivedReplicationDegree()) chunk.setPerceivedReplicationDegree(storedCount);
+                                } catch(Exception e){
+                                    Logger.error(e, true);
+                                }
+                            }
                         });
 
                         threadScheduler.schedule(new Runnable() {

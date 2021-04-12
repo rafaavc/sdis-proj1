@@ -21,8 +21,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
         this.threadScheduler = configuration.getThreadScheduler();
     }
 
-    public void backup(Message msg) throws Exception {
-        StoredTracker storedTracker = StoredTracker.getNewTracker();
+    public void backup(StoredTracker storedTracker, Message msg) throws Exception {
 
         threadScheduler.schedule(new Runnable() {
             @Override
@@ -30,6 +29,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                 try
                 {
                     if (storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()) >= msg.getReplicationDeg()) return;
+                    System.out.println("Had " + storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()) + " storeds.");
 
                     // check if still has space because in the time interval that passed the peer may have received other backups
                     if (configuration.getPeerState().getMaximumStorage() != -1 && configuration.getPeerState().getStorageAvailable() < msg.getBodySizeKB()) {
@@ -38,16 +38,25 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     }
 
                     Logger.log("Storing chunk.");
+                    configuration.getMC().send(messageFactory.getStoredMessage(configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
+
                     StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
 
                     ChunkInfo chunk = new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
                     configuration.getPeerState().addChunk(chunk);
-
-                    storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), (Integer countsReceived) -> {
-                        chunk.setPerceivedReplicationDegree(countsReceived);
+                    
+                    
+                    storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), () -> {
+                        synchronized(chunk) {
+                            try {
+                                int storedCount = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                                if (storedCount > chunk.getPerceivedReplicationDegree()) chunk.setPerceivedReplicationDegree(storedCount);
+                            } catch(Exception e){
+                                Logger.error(e, true);
+                            }
+                        }
                     });
 
-                    configuration.getMC().send(messageFactory.getStoredMessage(configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
 
                     FileManager files = new FileManager(configuration.getRootDir());
 
@@ -57,6 +66,12 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     threadScheduler.schedule(new Runnable() {
                         @Override
                         public void run() {
+                            try {
+                                int countsReceived = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                                chunk.setPerceivedReplicationDegree(countsReceived);
+                            } catch(Exception e) {
+                                Logger.error(e, true);
+                            }
                             StoredTracker.removeTracker(storedTracker);
                         }
                     }, 10, TimeUnit.SECONDS);
@@ -66,7 +81,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     Logger.error(e, true);
                 }
             }
-        }, configuration.getRandomDelay(400, 400), TimeUnit.MILLISECONDS); // this has will be executed after 400 + rand(400) ms, so that during the first 400 ms it received the STORED of the peers who already have the chunk backed up (which called the method below)
+        }, configuration.getRandomDelay(5000, 500), TimeUnit.MILLISECONDS); // this has will be executed after 500 + rand(5000) ms, so that during the first 400 ms it received the STORED of the peers who already have the chunk backed up (which called the method below)
     }
     
     public void sendAlreadyHadStored(Message msg) {
@@ -82,6 +97,6 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     Logger.error(e, true);
                 }
             }
-        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
+        }, configuration.getRandomDelay(500), TimeUnit.MILLISECONDS);
     }
 }

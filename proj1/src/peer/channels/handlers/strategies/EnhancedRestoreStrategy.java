@@ -2,12 +2,14 @@ package channels.handlers.strategies;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
 import files.FileManager;
 import messages.Message;
 import messages.MessageFactory;
+import utils.Logger;
 
 public class EnhancedRestoreStrategy extends RestoreStrategy {
     public EnhancedRestoreStrategy(PeerConfiguration configuration) {
@@ -30,13 +32,19 @@ public class EnhancedRestoreStrategy extends RestoreStrategy {
         this.configuration.getMDR().send(chunkMsg);
 
         socket.setSoTimeout(5000);  
-        Socket clientSocket = socket.accept();  // waits for connection for 5 seconds
+        try {
+            Socket clientSocket = socket.accept();  // waits for connection for 5 seconds
 
-        byte[] chunkData = new FileManager(configuration.getRootDir()).readChunk(msg.getFileId(), msg.getChunkNo());
+            byte[] chunkData = new FileManager(configuration.getRootDir()).readChunk(msg.getFileId(), msg.getChunkNo());
 
-        clientSocket.getOutputStream().write(chunkData);
+            clientSocket.getOutputStream().write(chunkData);
 
-        clientSocket.close();
-        socket.close();
+            clientSocket.close();
+            socket.close();
+        }
+        catch(SocketTimeoutException e) 
+        {
+            Logger.error("TCP socket timed out.");
+        }
     }
 }

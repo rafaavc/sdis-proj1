@@ -17,17 +17,23 @@ public class VanillaBackupStrategy extends BackupStrategy {
         super(configuration, new MessageFactory(new ProtocolVersion(1, 0)));
     }
 
-    public void backup(Message msg) throws Exception {
+    public void backup(StoredTracker storedTracker, Message msg) throws Exception {
         FileManager files = new FileManager(configuration.getRootDir());
-        StoredTracker storedTracker = StoredTracker.getNewTracker();
         
         Logger.log("Storing chunk.");
 
         StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
         ChunkInfo chunk = new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
 
-        storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), (Integer countsReceived) -> {
-            chunk.setPerceivedReplicationDegree(countsReceived);
+        storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), () -> {
+            synchronized(chunk) {
+                try {
+                    int storedCount = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                    if (storedCount > chunk.getPerceivedReplicationDegree()) chunk.setPerceivedReplicationDegree(storedCount);
+                } catch(Exception e){
+                    Logger.error(e, true);
+                }
+            }
         });
 
         configuration.getPeerState().addChunk(chunk);
@@ -39,6 +45,12 @@ public class VanillaBackupStrategy extends BackupStrategy {
         configuration.getThreadScheduler().schedule(new Runnable() {
             @Override
             public void run() {
+                try {
+                    int countsReceived = storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo());
+                    chunk.setPerceivedReplicationDegree(countsReceived);
+                } catch(Exception e) {
+                    Logger.error(e, true);
+                }
                 StoredTracker.removeTracker(storedTracker);
             }
         }, 10, TimeUnit.SECONDS);

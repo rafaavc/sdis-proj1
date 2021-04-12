@@ -6,14 +6,13 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 
 import state.PeerState;
 import utils.Logger;
 
 public class StoredTracker {
     private final ConcurrentMap<String, List<Integer>> storedCount = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, Consumer<Integer>> notifiers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Runnable> notifiers = new ConcurrentHashMap<>();
     private static final Queue<StoredTracker> storedTrackers = new ConcurrentLinkedQueue<>();
     private boolean active = true;
 
@@ -50,12 +49,12 @@ public class StoredTracker {
                 this.storedCount.put(key, peerList);
             }
             if (this.notifiers.containsKey(key)) {
-                this.notifiers.get(key).accept(getStoredCount(fileId, chunkNo));
+                this.notifiers.get(key).run();
             }
         }
     }
 
-    public void addNotifier(String fileId, int chunkNo, Consumer<Integer> notifier) {
+    public void addNotifier(String fileId, int chunkNo, Runnable notifier) {
         notifiers.put(fileId + chunkNo, notifier);
     }
 

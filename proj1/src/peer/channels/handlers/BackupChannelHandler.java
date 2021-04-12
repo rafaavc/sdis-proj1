@@ -2,6 +2,7 @@ package channels.handlers;
 
 import messages.Message;
 import messages.trackers.PutchunkTracker;
+import messages.trackers.StoredTracker;
 import utils.Logger;
 
 import java.net.InetAddress;
@@ -22,6 +23,8 @@ public class BackupChannelHandler extends Handler {
             case PUTCHUNK:
                 try 
                 {
+                    StoredTracker storedTracker = StoredTracker.getNewTracker();
+
                     peerState.removeDeletedFile(msg.getFileId());
                     PutchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
@@ -36,7 +39,7 @@ public class BackupChannelHandler extends Handler {
                         break;
                     }
 
-                    backupStrategy.backup(msg);
+                    backupStrategy.backup(storedTracker, msg);
                 } 
                 catch (Exception e) 
                 {

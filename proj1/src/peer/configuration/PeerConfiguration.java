@@ -35,7 +35,7 @@ public class PeerConfiguration {
         FileManager.createPeerStateAsynchronousChannel(getRootDir());
 
         this.chunkTracker = new ChunkTracker();
-        this.threadScheduler = new ScheduledThreadPoolExecutor(20);
+        this.threadScheduler = new ScheduledThreadPoolExecutor(30);
     }
 
     public ScheduledThreadPoolExecutor getThreadScheduler() {
