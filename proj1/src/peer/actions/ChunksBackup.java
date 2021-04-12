@@ -2,6 +2,7 @@ package actions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
@@ -16,18 +17,20 @@ public class ChunksBackup implements Runnable {
     private final PeerConfiguration configuration;
     private final FileInfo info;
     private final StoredTracker storedTracker;
+    private final CompletableFuture<Result> future;
 
-    public ChunksBackup(StoredTracker storedTracker, PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend) {
+    public ChunksBackup(CompletableFuture<Result> future, StoredTracker storedTracker, PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend) {
         this.count = 1;
         this.sleepAmount = 1000;
         this.configuration = configuration;
         this.info = info;
         this.chunksToSend = chunksToSend;
         this.storedTracker = storedTracker;
+        this.future = future;
     }
 
-    private ChunksBackup(StoredTracker storedTracker, PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend, int count, int sleepAmount) {
-        this(storedTracker, configuration, info, chunksToSend);
+    private ChunksBackup(CompletableFuture<Result> future, StoredTracker storedTracker, PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend, int count, int sleepAmount) {
+        this(future, storedTracker, configuration, info, chunksToSend);
         this.count = count;
         this.sleepAmount = sleepAmount;
     }
@@ -68,9 +71,11 @@ public class ChunksBackup implements Runnable {
 
                 if (count < 5 && chunksToSend.size() != 0)
                 {
-                    configuration.getThreadScheduler().schedule(new ChunksBackup(storedTracker, configuration, info, chunksToSend, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
+                    configuration.getThreadScheduler().schedule(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
                     return;
                 }
+
+                StringBuilder builder = new StringBuilder();
 
                 if (chunksToSend.size() != 0)
                 {
@@ -78,18 +83,29 @@ public class ChunksBackup implements Runnable {
                         int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
             
                         if (replicationDegree == 0) {
-                            new Delete(configuration, info.getFileId()).execute();
-                            System.err.println("Wasn't able to backup file: chunk " + chunk.getChunkNo() + " was not backed up by any peers");
+                            new Delete(new CompletableFuture<Result>(), configuration, info.getFileId()).execute();
                             StoredTracker.removeTracker(storedTracker);
+
+                            String msg = "Wasn't able to backup file: chunk " + chunk.getChunkNo() + " was not backed up by any peers";
+                            System.err.println(msg);
+                            future.complete(new Result(false, msg));
                             return;
                         }
                         info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
-                        System.out.println("Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree);
+
+                        String msg = "Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree;
+                        System.out.println(msg);
+
+                        builder.append(msg);
+                        builder.append("\n");
                     }
                 }
                 StoredTracker.removeTracker(storedTracker);
 
-                System.out.println("Backed up successfully!");
+                String msg = "Backed up successfully!";
+                System.out.println(msg);
+                builder.append(msg);
+                future.complete(new Result(true, builder.toString()));
             }
         }, sleepAmount, TimeUnit.MILLISECONDS);
     }

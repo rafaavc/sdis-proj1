@@ -2,6 +2,7 @@ package actions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
@@ -16,11 +17,13 @@ public class Backup {
     private final PeerConfiguration configuration;
     private final String filePath;
     private final int desiredReplicationDegree;
+    private final CompletableFuture<Result> future;
 
-    public Backup(PeerConfiguration configuration, String filePath, int desiredReplicationDegree) {
+    public Backup(CompletableFuture<Result> future, PeerConfiguration configuration, String filePath, int desiredReplicationDegree) {
         this.configuration = configuration;
         this.filePath = filePath;
         this.desiredReplicationDegree = desiredReplicationDegree;
+        this.future = future;
     }
 
     public void execute() {
@@ -43,11 +46,10 @@ public class Backup {
 
             StoredTracker storedTracker = StoredTracker.getNewTracker();
 
-            configuration.getThreadScheduler().schedule(new ChunksBackup(storedTracker, configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().schedule(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
             
         } catch(Exception e) {
             System.err.println(e.getMessage());
         }
     }
-    
 }

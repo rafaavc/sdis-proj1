@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
@@ -14,10 +15,12 @@ import state.ChunkInfo;
 public class Reclaim {
     private final PeerConfiguration configuration;
     private final int availableSpaceDesired;
+    private final CompletableFuture<Result> future;
 
-    public Reclaim(PeerConfiguration configuration, int availableSpaceDesired) {
+    public Reclaim(CompletableFuture<Result> future, PeerConfiguration configuration, int availableSpaceDesired) {
         this.configuration = configuration;
         this.availableSpaceDesired = availableSpaceDesired;
+        this.future = future;
     }
 
     public void execute() {
@@ -68,6 +71,8 @@ public class Reclaim {
                 fileManager.deleteChunk(chunk.getFileId(), chunk.getChunkNo());
                 this.configuration.getPeerState().deleteChunk(chunk);
             }
+
+            future.complete(new Result(true, "Reclaimed space successfuly."));
 
         } catch(Exception e) {
             System.err.println(e.getMessage());

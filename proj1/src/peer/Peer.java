@@ -3,6 +3,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;
@@ -14,6 +16,7 @@ import actions.Backup;
 import actions.CheckDeleted;
 import actions.Delete;
 import actions.Restore;
+import actions.Result;
 import actions.Reclaim;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
@@ -43,7 +46,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
 
     /* RMI interface */
 
-    public void backup(String filePath, int desiredReplicationDegree) throws RemoteException {
+    public Result backup(String filePath, int desiredReplicationDegree) throws RemoteException {
         Path path = Paths.get(filePath);
         String fileName = path.getFileName().toString();
 
@@ -52,33 +55,78 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
             String fileId = getPeerState().getFileId(fileName);
             System.out.println("The file " + fileName + " had an older version. Deleting it.");
 
-            new Delete(configuration, fileId).execute();
+            new Delete(new CompletableFuture<>(), configuration, fileId).execute();
         }
 
-        new Backup(configuration, filePath, desiredReplicationDegree).execute();
+        CompletableFuture<Result> f = new CompletableFuture<>();
+
+        new Backup(f, configuration, filePath, desiredReplicationDegree).execute();
+
+        try
+        {
+            return f.get();
+        }
+        catch(Exception e)
+        {
+            System.err.println(e.getStackTrace());
+        }
+        return null;
     }
 
-    public void restore(String fileName) throws RemoteException {
+    public Result restore(String fileName) throws RemoteException {
         if (!getPeerState().ownsFileWithName(fileName)) 
         {
             System.err.println("The file '" + fileName + "' doesn't exist in my history.");
-            return;
+            return new Result(false, "The file '" + fileName + "' doesn't exist in the peer's history.");
         }
-        new Restore(configuration, getPeerState().getFileId(fileName)).execute();
+        CompletableFuture<Result> f = new CompletableFuture<>();
+        new Restore(f, configuration, getPeerState().getFileId(fileName)).execute();
+
+        try
+        {
+            return f.get();
+        }
+        catch(Exception e)
+        {
+            System.err.println(e.getStackTrace());
+        }
+        return null;
     }
 
-    public void delete(String fileName) throws RemoteException {
+    public Result delete(String fileName) throws RemoteException {
         if (!getPeerState().ownsFileWithName(fileName))
         {
             System.err.println("The file '" + fileName + "' doesn't exist in my history.");
-            return;
+            return new Result(false, "The file '" + fileName + "' doesn't exist in the peer's history.");
         }
         String fileId = getPeerState().getFileId(fileName);
-        new Delete(configuration, fileId).execute();
+        CompletableFuture<Result> f = new CompletableFuture<>();
+        new Delete(f, configuration, fileId).execute();
+
+        try
+        {
+            return f.get();
+        }
+        catch(Exception e)
+        {
+            System.err.println(e.getStackTrace());
+        }
+        return null;
     }
 
-    public void reclaim(int kb) throws RemoteException {
-        new Reclaim(configuration, kb).execute();
+    public Result reclaim(int kb) throws RemoteException {
+        CompletableFuture<Result> f = new CompletableFuture<>();
+        new Reclaim(f, configuration, kb).execute();
+
+        try
+        {
+            return f.get();
+        }
+        catch(Exception e)
+        {
+            System.err.println(e.getStackTrace());
+        }
+        return null;
     }
 
     public PeerState getPeerState() {

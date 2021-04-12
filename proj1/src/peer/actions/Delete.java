@@ -1,5 +1,6 @@
 package actions;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
@@ -9,6 +10,7 @@ import messages.MessageFactory;
 public class Delete {
     private final PeerConfiguration configuration;
     private final String fileId;
+    private final CompletableFuture<Result> future;
 
     private class DeleteIter implements Runnable {
         private final byte[] msg;
@@ -35,12 +37,14 @@ public class Delete {
                 System.err.println(e.getMessage());
             }
             if (count < 5) configuration.getThreadScheduler().schedule(new DeleteIter(msg, count + 1), 500, TimeUnit.MILLISECONDS);
+            else future.complete(new Result(true, "Sent delete 5 times."));
         }
     }
 
-    public Delete(PeerConfiguration configuration, String fileId) {
+    public Delete(CompletableFuture<Result> future, PeerConfiguration configuration, String fileId) {
         this.configuration = configuration;
         this.fileId = fileId;
+        this.future = future;
     }
 
     public void execute() {

@@ -2,6 +2,7 @@ package actions;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
@@ -13,10 +14,12 @@ import state.FileInfo;
 public class Restore {
     private final PeerConfiguration configuration;
     private final String fileId;
+    private final CompletableFuture<Result> future;
 
-    public Restore(PeerConfiguration configuration, String fileId) {
+    public Restore(CompletableFuture<Result> future, PeerConfiguration configuration, String fileId) {
         this.configuration = configuration;
         this.fileId = fileId;
+        this.future = future;
     }
 
     public void execute() {
@@ -36,7 +39,7 @@ public class Restore {
                 chunkTracker.startWaitingForChunk(file.getFileId(), chunk.getChunkNo());
             }
 
-            configuration.getThreadScheduler().schedule(new ChunksRestore(configuration, file, chunksToGet), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().schedule(new ChunksRestore(future, configuration, file, chunksToGet), 0, TimeUnit.MILLISECONDS);
         } 
         catch(Exception e) 
         {

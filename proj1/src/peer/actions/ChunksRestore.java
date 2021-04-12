@@ -3,6 +3,7 @@ package actions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
@@ -16,17 +17,19 @@ public class ChunksRestore implements Runnable {
     private int count, sleepAmount;
     private final PeerConfiguration configuration;
     private final FileInfo info;
+    private final CompletableFuture<Result> future;
 
-    public ChunksRestore(PeerConfiguration configuration, FileInfo info, Map<ChunkPair, byte[]> chunksToGet) {
+    public ChunksRestore(CompletableFuture<Result> future, PeerConfiguration configuration, FileInfo info, Map<ChunkPair, byte[]> chunksToGet) {
         this.count = 1;
         this.sleepAmount = 1000;
         this.configuration = configuration;
         this.info = info;
         this.chunksToGet = chunksToGet;
+        this.future = future;
     }
 
-    private ChunksRestore(PeerConfiguration configuration, FileInfo info, Map<ChunkPair, byte[]> chunksToGet, int count, int sleepAmount) {
-        this(configuration, info, chunksToGet);
+    private ChunksRestore(CompletableFuture<Result> future, PeerConfiguration configuration, FileInfo info, Map<ChunkPair, byte[]> chunksToGet, int count, int sleepAmount) {
+        this(future, configuration, info, chunksToGet);
         this.count = count;
         this.sleepAmount = sleepAmount;
     }
@@ -64,22 +67,27 @@ public class ChunksRestore implements Runnable {
 
                 if (count < 5 && chunksToGet.size() != 0)
                 {
-                    configuration.getThreadScheduler().schedule(new ChunksRestore(configuration, info, chunksToGet, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
+                    configuration.getThreadScheduler().schedule(new ChunksRestore(future, configuration, info, chunksToGet, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
                     return;
                 }
 
                 if (chunksToGet.size() != 0)
                 {
-                    System.out.println("Couldn't restore file, chunks missing:");
+                    StringBuilder builder = new StringBuilder();
+                    builder.append("Couldn't restore file, chunks missing:\n");
                     for (ChunkPair chunk : chunksToGet.keySet()) {
-                        System.out.println("- " + chunk.getChunkNo());
+                        builder.append("- " + chunk.getChunkNo() + "\n");
                     }
-                    System.out.println();
+                    builder.append("\n");
+                    System.out.println(builder.toString());
+                    future.complete(new Result(false, builder.toString()));
                     return;
                 }
 
                 List<byte[]> chunks = chunkTracker.getFileChunks(info.getFileId());
-                System.out.println("Received " + chunks.size() + "/" + info.getChunks().size() + " chunks.");
+                String msg = "Received " + chunks.size() + "/" + info.getChunks().size() + " chunks.";
+                System.out.println(msg);
+                future.complete(new Result(true, msg));
     
                 FileManager fileManager = new FileManager(configuration.getRootDir());
 
