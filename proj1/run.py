@@ -100,7 +100,7 @@ def run_peer(peerId):
     os.execvp("java", ["java", "Main", args.v, str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
 
 def start_peers():
-    os.chdir("gen")
+    os.chdir("src/build")
     processes = []
     for i in range(args.n):
         r, w = os.pipe()
@@ -117,7 +117,7 @@ def start_peers():
                 "pipeRFD": r
             })
     # print("\nCreated processes: \n" + str(processes), end="\n\n")
-    os.chdir("..")
+    os.chdir("../..")
     lock = Lock()
     for proc in processes:
         thread = PrintPeerStdout(proc, lock)
@@ -144,7 +144,7 @@ def printTips():
 
 rmipid = os.fork()
 if (rmipid == 0):
-    os.chdir("gen")  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
+    os.chdir("src/build")  # needs to either have the classpath with the ClientInterface or be started in the same folder (starting in same folder)
     print("Starting RMI...")
     os.execvp("rmiregistry", ["rmiregistry"])
 
