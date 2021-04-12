@@ -26,7 +26,14 @@ public class MessageParser {
 
         String[] headerPieces = header.split(" +"); // regex for spaces (works with multiple spaces)
 
-        String version = headerPieces[0], messageType = headerPieces[1], senderId = headerPieces[2], fileId = headerPieces[3];
+        String version = headerPieces[0], messageType = headerPieces[1], fileId = headerPieces[3];
+
+        int senderId;
+        try {
+            senderId = Integer.parseInt(headerPieces[2]);
+        } catch(NumberFormatException e) {
+            throw new ArgsException(Type.PEER_ID, headerPieces[2]);
+        }
 
         MessageType type = getMessageType(messageType);
         Message message = new Message(new ProtocolVersion(version), senderId, fileId);

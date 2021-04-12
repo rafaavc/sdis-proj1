@@ -39,7 +39,7 @@ public class ControlChannelHandler extends Handler {
             switch(msg.getMessageType()) { 
                 case STORED:
                     peerState.removeDeletedFile(msg.getFileId());  // the file was stored by other peer
-                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(msg.getSenderId()));
+                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), msg.getSenderId());
                     break;
                 case DELETE:
                     if (peerState.hasFileChunks(msg.getFileId())) {
@@ -150,7 +150,7 @@ public class ControlChannelHandler extends Handler {
                                     Logger.log("Restarting backup of (" + chunk + ") after receiving REMOVED.");
 
                                     // because this peer already has the chunk
-                                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
+                                    StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), configuration.getPeerId());
 
                                     byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                                     byte[] storedMsg = msgFactoryVanilla.getStoredMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());

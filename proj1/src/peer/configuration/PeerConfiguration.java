@@ -16,14 +16,15 @@ import messages.trackers.ChunkTracker;
 import state.PeerState;
 
 public class PeerConfiguration {
-    private final String peerId, serviceAccessPoint;
+    private final int peerId;
+    private final String serviceAccessPoint;
     private final ProtocolVersion protocolVersion;
     private final MulticastChannel mc, mdb, mdr;
     private final PeerState state;
     private final ChunkTracker chunkTracker;
     private final ScheduledThreadPoolExecutor threadScheduler;
 
-    public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws Exception {
+    public PeerConfiguration(ProtocolVersion protocolVersion, int peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws Exception {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
@@ -74,7 +75,7 @@ public class PeerConfiguration {
         return null;
     }
 
-    public String getPeerId() {
+    public int getPeerId() {
         return peerId;
     }
 

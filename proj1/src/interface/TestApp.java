@@ -8,7 +8,7 @@ import exceptions.ArgsException;
 import exceptions.ArgsException.Type;
 import utils.Logger;
 
-public class BackupServiceInterface {
+public class TestApp {
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
             Logger.error("I need the peer's rmi registry name and the method to invoke.");

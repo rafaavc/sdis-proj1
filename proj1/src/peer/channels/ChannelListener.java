@@ -5,7 +5,6 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.SocketException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import channels.handlers.Handler;
 import exceptions.ArgsException;
@@ -47,12 +46,12 @@ public class ChannelListener extends Thread {
                             
                             Logger.log(channel.getType(), msg);
 
-                            if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) return;
+                            if (msg.getSenderId() == action.getConfiguration().getPeerId()) return;
                             action.execute(msg, packet.getAddress());
                         } 
-                        catch(ArgsException e) 
+                        catch(Exception e) 
                         {
-                            Logger.error(e, false);
+                            Logger.error("Received invalid message: " + e);
                         }
                     }
                 });

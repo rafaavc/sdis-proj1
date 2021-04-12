@@ -39,7 +39,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     Logger.log("Storing chunk.");
                     configuration.getMC().send(messageFactory.getStoredMessage(configuration.getPeerId(), msg.getFileId(), msg.getChunkNo()));
 
-                    StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
+                    StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), configuration.getPeerId());
 
                     ChunkInfo chunk = new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
                     configuration.getPeerState().addChunk(chunk);

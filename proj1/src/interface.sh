@@ -1,4 +1,4 @@
 #!/bin/sh
 cd gen
-java BackupServiceInterface $@
+java TestApp $@
 

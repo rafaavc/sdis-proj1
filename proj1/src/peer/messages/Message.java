@@ -9,7 +9,8 @@ import configuration.ProtocolVersion;
 public class Message {
     private final ProtocolVersion version;
     private MessageType messageType;
-    private final String senderId, fileId;
+    private final int senderId;
+    private final String fileId;
     private int chunkNo = -1;
     private short replicationDeg = -1;
 
@@ -38,33 +39,33 @@ public class Message {
         messageTypeStrings.put(MessageType.FILECHECK, "FILECHECK");
     }
 
-    public Message(ProtocolVersion version, String senderId, String fileId) {
+    public Message(ProtocolVersion version, int senderId, String fileId) {
         this.version = version;  // TODO verify version
         this.senderId = senderId;
         this.fileId = fileId;
     }
 
-    public Message(ProtocolVersion version, MessageType messageType, String senderId, String fileId) {
+    public Message(ProtocolVersion version, MessageType messageType, int senderId, String fileId) {
         this(version, senderId, fileId);
         this.messageType = messageType;
     }
 
-    public Message(ProtocolVersion version, MessageType messageType, String senderId, String fileId, int chunkNo) {
+    public Message(ProtocolVersion version, MessageType messageType, int senderId, String fileId, int chunkNo) {
         this(version, messageType, senderId, fileId);
         this.chunkNo = chunkNo;
     }
 
-    public Message(ProtocolVersion version, MessageType messageType, String senderId, String fileId, int chunkNo, int replicationDeg) {
+    public Message(ProtocolVersion version, MessageType messageType, int senderId, String fileId, int chunkNo, int replicationDeg) {
         this(version, messageType, senderId, fileId, chunkNo);
         this.replicationDeg = (short) replicationDeg;
     }
 
-    public Message(ProtocolVersion version, MessageType messageType, String senderId, String fileId, int chunkNo, byte[] body) {
+    public Message(ProtocolVersion version, MessageType messageType, int senderId, String fileId, int chunkNo, byte[] body) {
         this(version, messageType, senderId, fileId, chunkNo);
         this.body = body;
     }
 
-    public Message(ProtocolVersion version, MessageType messageType, String senderId, String fileId, int chunkNo, int replicationDeg, byte[] body) {
+    public Message(ProtocolVersion version, MessageType messageType, int senderId, String fileId, int chunkNo, int replicationDeg, byte[] body) {
         this(version, messageType, senderId, fileId, chunkNo, replicationDeg);
         this.body = body;
     }
@@ -106,7 +107,7 @@ public class Message {
         return messageType;
     }
 
-    public String getSenderId() {
+    public int getSenderId() {
         return senderId;
     }
 
@@ -143,7 +144,7 @@ public class Message {
         List<String> components = new ArrayList<>();
         components.add(version.toString());
         components.add(messageTypeStrings.get(messageType));
-        components.add(senderId);
+        components.add(String.valueOf(senderId));
         components.add(fileId);
         if (chunkNo != -1) components.add(String.valueOf(chunkNo));
         if (replicationDeg != -1) components.add(String.valueOf(replicationDeg));

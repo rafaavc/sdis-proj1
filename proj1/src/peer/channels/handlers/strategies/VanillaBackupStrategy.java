@@ -22,7 +22,7 @@ public class VanillaBackupStrategy extends BackupStrategy {
         
         Logger.log("Storing chunk.");
 
-        StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
+        StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), this.configuration.getPeerId());
         ChunkInfo chunk = new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
 
         storedTracker.addNotifier(msg.getFileId(), msg.getChunkNo(), () -> {

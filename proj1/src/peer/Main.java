@@ -10,6 +10,7 @@ import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
 import exceptions.ArgsException;
+import exceptions.ArgsException.Type;
 import utils.Logger;
 
 public class Main {
@@ -48,15 +49,22 @@ public class Main {
         if (args.length != 9) throw new ArgsException(ArgsException.Type.ARGS_LENGTH);
 
         // Need to verify better
-        String protocolVersion = args[0];
-        String peerId = args[1];
-        String serviceAccessPoint = args[2];
-        MulticastChannel mc = new MulticastChannel(ChannelType.CONTROL, args[3], Integer.parseInt(args[4])); // Multicast control
-        MulticastChannel mdb = new MulticastChannel(ChannelType.BACKUP, args[5], Integer.parseInt(args[6])); // Multicast data backup
-        MulticastChannel mdr = new MulticastChannel(ChannelType.RESTORE, args[7], Integer.parseInt(args[8])); // Multicast data restore
+        ProtocolVersion protocolVersion = new ProtocolVersion(args[0]);
+        if (!protocolVersion.equals("1.0") && ! protocolVersion.equals("1.1")) throw new ArgsException(Type.UNKNOWN_VERSION_NO, protocolVersion.toString());
+        try
+        {
+            int peerId = Integer.parseInt(args[1]);
 
-        PeerConfiguration configuration = new PeerConfiguration(new ProtocolVersion(protocolVersion), peerId, serviceAccessPoint, mc, mdb, mdr);
-
-        return configuration;
+            String serviceAccessPoint = args[2];
+            MulticastChannel mc = new MulticastChannel(ChannelType.CONTROL, args[3], Integer.parseInt(args[4])); // Multicast control
+            MulticastChannel mdb = new MulticastChannel(ChannelType.BACKUP, args[5], Integer.parseInt(args[6])); // Multicast data backup
+            MulticastChannel mdr = new MulticastChannel(ChannelType.RESTORE, args[7], Integer.parseInt(args[8])); // Multicast data restore
+    
+            PeerConfiguration configuration = new PeerConfiguration(protocolVersion, peerId, serviceAccessPoint, mc, mdb, mdr);
+    
+            return configuration;
+        } catch(NumberFormatException e) {
+            throw new ArgsException(Type.PEER_ID, args[1]);
+        }
     } 
 }
