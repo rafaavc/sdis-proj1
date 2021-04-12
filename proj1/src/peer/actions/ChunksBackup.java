@@ -23,7 +23,7 @@ public class ChunksBackup implements Runnable {
 
     public ChunksBackup(CompletableFuture<Result> future, StoredTracker storedTracker, PeerConfiguration configuration, FileInfo info, Map<Chunk, byte[]> chunksToSend) {
         this.count = 1;
-        this.sleepAmount = 1000;
+        this.sleepAmount = configuration.getProtocolVersion().equals("1.0") ? 1000 : 3000;
         this.configuration = configuration;
         this.info = info;
         this.chunksToSend = chunksToSend;
@@ -72,7 +72,7 @@ public class ChunksBackup implements Runnable {
 
                 if (count < 5 && chunksToSend.size() != 0)
                 {
-                    configuration.getThreadScheduler().schedule(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
+                    configuration.getThreadScheduler().execute(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend, count+1, sleepAmount*2));
                     return;
                 }
 

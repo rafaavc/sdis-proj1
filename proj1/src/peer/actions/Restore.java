@@ -41,7 +41,7 @@ public class Restore {
                 chunkTracker.startWaitingForChunk(file.getFileId(), chunk.getChunkNo());
             }
 
-            configuration.getThreadScheduler().schedule(new ChunksRestore(future, configuration, file, chunksToGet), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().execute(new ChunksRestore(future, configuration, file, chunksToGet));
         } 
         catch(Exception e) 
         {

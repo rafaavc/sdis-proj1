@@ -155,7 +155,7 @@ public class ControlChannelHandler extends Handler {
                                     byte[] putchunkMsg = msgFactoryVanilla.getPutchunkMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getDesiredReplicationDegree(), chunk.getChunkNo(), chunkData);
                                     byte[] storedMsg = msgFactoryVanilla.getStoredMessage(configuration.getPeerId(), chunk.getFileId(), chunk.getChunkNo());
 
-                                    threadScheduler.schedule(new ReclaimChunkBackup(removedStoredTracker, configuration, chunk, putchunkMsg, storedMsg), 0, TimeUnit.MILLISECONDS);
+                                    threadScheduler.execute(new ReclaimChunkBackup(removedStoredTracker, configuration, chunk, putchunkMsg, storedMsg));
                                 } 
                                 catch(Exception e) 
                                 {

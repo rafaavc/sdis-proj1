@@ -48,7 +48,7 @@ public class Backup {
 
             StoredTracker storedTracker = StoredTracker.getNewTracker();
 
-            configuration.getThreadScheduler().schedule(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().execute(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend));
             
         } catch(Exception e) {
             Logger.error(e, future);

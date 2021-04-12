@@ -67,7 +67,7 @@ public class ReclaimChunkBackup implements Runnable {
 
                         if (count < 5 && replicationDegree < chunk.getDesiredReplicationDegree())
                         {
-                            threadScheduler.schedule(new ReclaimChunkBackup(storedTracker, configuration, chunk, putchunkMsg, storedMsg, count + 1, sleepAmount * 2), 0, TimeUnit.MILLISECONDS);
+                            threadScheduler.execute(new ReclaimChunkBackup(storedTracker, configuration, chunk, putchunkMsg, storedMsg, count + 1, sleepAmount * 2));
                             return;
                         }
 

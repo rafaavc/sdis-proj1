@@ -29,7 +29,6 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                 try
                 {
                     if (storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()) >= msg.getReplicationDeg()) return;
-                    System.out.println("Had " + storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()) + " storeds.");
 
                     // check if still has space because in the time interval that passed the peer may have received other backups
                     if (configuration.getPeerState().getMaximumStorage() != -1 && configuration.getPeerState().getStorageAvailable() < msg.getBodySizeKB()) {
@@ -81,7 +80,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     Logger.error(e, true);
                 }
             }
-        }, configuration.getRandomDelay(5000, 500), TimeUnit.MILLISECONDS); // this has will be executed after 500 + rand(5000) ms, so that during the first 400 ms it received the STORED of the peers who already have the chunk backed up (which called the method below)
+        }, configuration.getRandomDelay(2000, 400), TimeUnit.MILLISECONDS); // this has will be executed after 500 + rand(5000) ms, so that during the first 400 ms it received the STORED of the peers who already have the chunk backed up (which called the method below)
     }
     
     public void sendAlreadyHadStored(Message msg) {
@@ -97,6 +96,6 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                     Logger.error(e, true);
                 }
             }
-        }, configuration.getRandomDelay(500), TimeUnit.MILLISECONDS);
+        }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
     }
 }

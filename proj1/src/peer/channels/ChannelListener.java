@@ -36,7 +36,7 @@ public class ChannelListener extends Thread {
                 DatagramPacket packet = new DatagramPacket(rbuf, rbuf.length);
 
                 socket.receive(packet);
-                threadScheduler.schedule(new Runnable() {
+                threadScheduler.execute(new Runnable() {
                     @Override
                     public void run() {
                         byte[] data = packet.getData();
@@ -55,7 +55,7 @@ public class ChannelListener extends Thread {
                             Logger.error(e, false);
                         }
                     }
-                }, 0, TimeUnit.MILLISECONDS);
+                });
             }
         } catch (IOException e) {
             if (!(e instanceof SocketException)) {

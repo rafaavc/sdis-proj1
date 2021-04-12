@@ -69,7 +69,7 @@ public class ChunksRestore implements Runnable {
 
                 if (count < 5 && chunksToGet.size() != 0)
                 {
-                    configuration.getThreadScheduler().schedule(new ChunksRestore(future, configuration, info, chunksToGet, count+1, sleepAmount*2), 0, TimeUnit.MILLISECONDS);
+                    configuration.getThreadScheduler().execute(new ChunksRestore(future, configuration, info, chunksToGet, count+1, sleepAmount*2));
                     return;
                 }
 

@@ -56,7 +56,7 @@ public class Delete {
         try 
         {
             byte[] msg = new MessageFactory(new ProtocolVersion(1, 0)).getDeleteMessage(this.configuration.getPeerId(), fileId);
-            configuration.getThreadScheduler().schedule(new DeleteIter(msg), 0, TimeUnit.MILLISECONDS);
+            configuration.getThreadScheduler().execute(new DeleteIter(msg));
         } 
         catch(Exception e) 
         {
