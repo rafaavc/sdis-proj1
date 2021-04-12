@@ -40,6 +40,7 @@ public class PeerState implements Serializable {
 
     public synchronized void setMaximumStorageAvailable(int maximumSpaceAvailable) {
         this.maximumSpaceAvailable = maximumSpaceAvailable;
+        writeState();
     }
 
     public int getMaximumStorage() {
@@ -64,18 +65,21 @@ public class PeerState implements Serializable {
         synchronized (files) {
             files.put(f.getFileId(), f);
             fileNameId.put(f.getFileName(), f.getFileId());
+            writeState();
         }
     }
 
     public void addDeletedFile(String fileId) {
         synchronized (deletedFiles) {
             if (!deletedFiles.contains(fileId)) deletedFiles.add(fileId);
+            writeState();
         }
     }
 
     public void removeDeletedFile(String fileId) {
         synchronized (deletedFiles) {
             deletedFiles.remove(fileId);
+            writeState();
         }
     }
 
@@ -89,6 +93,7 @@ public class PeerState implements Serializable {
         synchronized (files) {
             fileNameId.remove(files.get(fileId).getFileName());
             files.remove(fileId);
+            writeState();
         }
     }
 
@@ -109,6 +114,7 @@ public class PeerState implements Serializable {
                 info.put(c.getChunkNo(), c);
                 chunks.put(c.getFileId(), info);
             }
+            writeState();
         }
         try {
             this.write();
@@ -127,18 +133,21 @@ public class PeerState implements Serializable {
                     fileChunks.get(chunkNo).setPerceivedReplicationDegree(perceivedReplicationDegree); // TODO this may need improvements
                 }
             }
+            writeState();
         }
     }
 
     public void deleteChunk(ChunkInfo c) {
         synchronized (chunks) {
             chunks.get(c.getFileId()).remove(c.getChunkNo());
+            writeState();
         }
     }
 
     public void deleteFileChunks(String fileId) {
         synchronized (chunks) {
             this.chunks.remove(fileId);
+            writeState();
         }
     }
 
