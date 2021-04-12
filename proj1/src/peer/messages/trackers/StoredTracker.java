@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 import state.PeerState;
+import utils.Logger;
 
 public class StoredTracker {
     private final ConcurrentMap<String, List<Integer>> storedCount = new ConcurrentHashMap<>();
@@ -34,7 +35,10 @@ public class StoredTracker {
     }
 
     private void addStored(PeerState state, String fileId, int chunkNo, int peerId) {
-        if (!active) System.err.println("called addStoredCount on inactive StoredTracker");
+        if (!active) {
+            Logger.error("called addStoredCount on inactive StoredTracker");
+            System.exit(1);
+        }
         String key = fileId + chunkNo;
         synchronized(storedCount) {
             if (this.storedCount.containsKey(key)) {
@@ -56,7 +60,12 @@ public class StoredTracker {
     }
 
     public int getStoredCount(String fileId, int chunkNo) {
-        if (!active) System.err.println("called getStoredCount on inactive StoredTracker");
-        return this.storedCount.containsKey(fileId + chunkNo) ? this.storedCount.get(fileId + chunkNo).size() : 0;
+        if (!active) {
+            Logger.error("called getStoredCount on inactive StoredTracker");
+            System.exit(1);
+        }
+        synchronized (storedCount) {
+            return this.storedCount.containsKey(fileId + chunkNo) ? this.storedCount.get(fileId + chunkNo).size() : 0;
+        }
     }
 }

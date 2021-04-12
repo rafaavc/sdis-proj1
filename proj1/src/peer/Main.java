@@ -10,6 +10,7 @@ import channels.MulticastChannel.ChannelType;
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
 import exceptions.ArgsException;
+import utils.Logger;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -21,7 +22,7 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() {
-                System.out.println("Closing multicast sockets and ubinding from registry..."); 
+                Logger.log("Closing multicast sockets and ubinding from registry..."); 
 
                 for (MulticastChannel channel : configuration.getChannels()) channel.close();
                 
@@ -30,15 +31,14 @@ public class Main {
                 try {
                     peer.writeState();
                 } catch (IOException e1) {
-                    System.out.println(e1.getMessage());
-                    e1.printStackTrace();
+                    Logger.error(e1, true);
                 }
 
                 try {
                     registry.unbind(configuration.getServiceAccessPoint());
-                    System.out.println("Unbound successfully."); 
+                    Logger.log("Unbound successfully."); 
                 } catch (RemoteException | NotBoundException e) {
-                    System.err.println("Error unbinding."); 
+                    Logger.error("Error unbinding."); 
                 }
             } 
         });

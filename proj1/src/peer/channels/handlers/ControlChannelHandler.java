@@ -9,6 +9,7 @@ import messages.trackers.PutchunkTracker;
 import state.ChunkInfo;
 import state.ChunkPair;
 import state.FileInfo;
+import utils.Logger;
 
 import java.net.InetAddress;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -66,7 +67,7 @@ public class ControlChannelHandler extends Handler {
                                 } 
                                 catch(Exception e) 
                                 {
-                                    System.err.println(e.getMessage());
+                                    Logger.error(e, true);
                                 }
                             }
                         }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
@@ -86,7 +87,7 @@ public class ControlChannelHandler extends Handler {
                                 } 
                                 catch(Exception e) 
                                 {
-                                    System.err.println(e.getMessage());
+                                    Logger.error(e, true);
                                 }
                             }
                         }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
@@ -139,7 +140,7 @@ public class ControlChannelHandler extends Handler {
 
                                     PutchunkTracker.removeTracker(putchunkTracker);
 
-                                    System.out.println("Restarting backup of (" + chunk + ") after receiving REMOVED.");
+                                    Logger.log("Restarting backup of (" + chunk + ") after receiving REMOVED.");
 
                                     // because this peer already has the chunk
                                     StoredTracker.addStoredCount(peerState, msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
@@ -151,7 +152,7 @@ public class ControlChannelHandler extends Handler {
                                 } 
                                 catch(Exception e) 
                                 {
-                                    System.err.println(e.getMessage());
+                                    Logger.error(e, true);
                                 }
                             }
                         }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
@@ -159,12 +160,11 @@ public class ControlChannelHandler extends Handler {
                     
                     break;
                 default:
-                    System.err.println("Received wrong message in ControlChannelHandler! " + msg);
+                    Logger.error("Received wrong message in ControlChannelHandler! " + msg);
                     break;
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            Logger.error(e, true);
         }
     }
 }

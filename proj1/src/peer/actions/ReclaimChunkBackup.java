@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import configuration.PeerConfiguration;
 import messages.trackers.StoredTracker;
 import state.ChunkInfo;
+import utils.Logger;
 
 public class ReclaimChunkBackup implements Runnable {
     private final ChunkInfo chunk;
@@ -40,7 +41,7 @@ public class ReclaimChunkBackup implements Runnable {
         }
         catch(Exception e)
         {
-            System.err.println(e.getMessage());
+            Logger.error(e, true);
         }
 
         int randVal = configuration.getRandomDelay(400);
@@ -55,7 +56,7 @@ public class ReclaimChunkBackup implements Runnable {
                 }
                 catch(Exception e)
                 {
-                    System.err.println(e.getMessage());
+                    Logger.error(e, true);
                 }
 
                 // checks the replication degree after sleepAmount ms
@@ -63,8 +64,6 @@ public class ReclaimChunkBackup implements Runnable {
                     @Override
                     public void run() {                
                         int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
-                        
-                        System.out.println("Checking stored count = " + replicationDegree);
 
                         if (count < 5 && replicationDegree < chunk.getDesiredReplicationDegree())
                         {
@@ -75,13 +74,13 @@ public class ReclaimChunkBackup implements Runnable {
                         StoredTracker.removeTracker(storedTracker);
 
                         if (replicationDegree == 0)
-                            System.out.println("Couldn't backup chunk " + chunk.getChunkNo() + ". Perceived = " + replicationDegree);
+                            Logger.error("Couldn't backup chunk " + chunk.getChunkNo() + ". Perceived = " + replicationDegree);
                         
                         else if (replicationDegree < chunk.getDesiredReplicationDegree())
-                            System.out.println("Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree);
+                            Logger.log("Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree);
 
                         else
-                            System.out.println("Backed up chunk successfully.");
+                            Logger.log("Backed up chunk successfully.");
 
                         chunk.setPerceivedReplicationDegree(replicationDegree);
                     }

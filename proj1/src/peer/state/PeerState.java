@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import utils.Logger;
+
 
 
 public class PeerState implements Serializable {
@@ -107,7 +109,13 @@ public class PeerState implements Serializable {
                 chunks.put(c.getFileId(), info);
             }
         }
-        //this.write(); // TO REMOVE
+        try {
+            this.write();
+        }
+        catch(IOException e)
+        {
+            Logger.error("Error writing peer state. " + e.getMessage());
+        }
     }
 
     public void updateChunkPerceivedRepDegree(String fileId, int chunkNo, int perceivedReplicationDegree) {
@@ -166,7 +174,7 @@ public class PeerState implements Serializable {
     public static PeerState read(String dir) throws IOException, ClassNotFoundException {
         File f = new File(dir + "/" + stateFileName);
         if (!f.exists()) {
-            System.out.println("Didn't find a stored state, creating new one.");
+            Logger.log("Didn't find a stored state, creating new one.");
             return new PeerState(dir);
         }
 
@@ -188,10 +196,21 @@ public class PeerState implements Serializable {
 
         FileOutputStream fout = new FileOutputStream(filePath);
         ObjectOutputStream out = new ObjectOutputStream(fout);
-  
-        out.writeObject(this);
+        synchronized (deletedFiles) {
+            out.writeObject(this);
+        }
   
         out.close();
+    }
+
+    private void writeState() {
+        try {
+            this.write();
+        }
+        catch(IOException e)
+        {
+            Logger.error("Error writing peer state. " + e.getMessage());
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package channels.handlers;
 
 import messages.Message;
 import messages.trackers.PutchunkTracker;
+import utils.Logger;
 
 import java.net.InetAddress;
 
@@ -24,14 +25,14 @@ public class BackupChannelHandler extends Handler {
                     peerState.removeDeletedFile(msg.getFileId());
                     PutchunkTracker.addPutchunkReceived(msg.getFileId(), msg.getChunkNo());
                     if (peerState.hasChunk(msg.getFileId(), msg.getChunkNo())) {
-                        System.out.println("Already had chunk!");
+                        Logger.log("Already had chunk!");
                         backupStrategy.sendAlreadyHadStored(msg);
                         break;
                     } else if (peerState.ownsFileWithId(msg.getFileId())) {
-                        System.out.println("I am the file owner!");
+                        Logger.log("I am the file owner!");
                         break;
                     } else if (peerState.getMaximumStorage() != -1 && peerState.getStorageAvailable() < msg.getBodySizeKB()) {
-                        System.out.println("Not enough space available for backup.");
+                        Logger.log("Not enough space available for backup.");
                         break;
                     }
 
@@ -39,12 +40,11 @@ public class BackupChannelHandler extends Handler {
                 } 
                 catch (Exception e) 
                 {
-                    System.err.println(e.getMessage());
-                    e.printStackTrace();
+                    Logger.error(e, true);
                 }
                 break;
             default:
-                System.err.println("Received wrong message in BackupChannelHandler! " + msg);
+                Logger.error("Received wrong message in BackupChannelHandler! " + msg);
                 break;
         }
     }

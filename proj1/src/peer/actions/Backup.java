@@ -12,6 +12,8 @@ import files.ChunkedFile;
 import messages.MessageFactory;
 import messages.trackers.StoredTracker;
 import state.FileInfo;
+import utils.Logger;
+import utils.Result;
 
 public class Backup {
     private final PeerConfiguration configuration;
@@ -40,7 +42,7 @@ public class Backup {
                 chunksToSend.put(chunk, msg);
             }
 
-            System.out.println("I split the file into these chunks: " + chunksToSend);
+            Logger.log("I split the file into these chunks: " + chunksToSend);
 
             this.configuration.getPeerState().addFile(info);
 
@@ -49,7 +51,7 @@ public class Backup {
             configuration.getThreadScheduler().schedule(new ChunksBackup(future, storedTracker, configuration, info, chunksToSend), 0, TimeUnit.MILLISECONDS);
             
         } catch(Exception e) {
-            System.err.println(e.getMessage());
+            Logger.error(e, future);
         }
     }
 }

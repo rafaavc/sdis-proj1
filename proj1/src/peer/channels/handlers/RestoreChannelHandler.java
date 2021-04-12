@@ -1,6 +1,7 @@
 package channels.handlers;
 
 import messages.trackers.ChunkTracker;
+import utils.Logger;
 import messages.Message;
 
 import java.net.InetAddress;
@@ -27,7 +28,7 @@ public class RestoreChannelHandler extends Handler {
                     if (configuration.getProtocolVersion().equals("1.0") || !msg.getVersion().equals("1.1"))
                     {
                         // if the peer's protocol version is 1.0, then no other is accepted; otherwise, the version must be 1.1
-                        System.err.println("Received unknown protocol version CHUNK message (" + msg.getVersion() + ").");
+                        Logger.error("Received unknown protocol version CHUNK message (" + msg.getVersion() + ").");
                         return;
                     }
                     if (!chunkTracker.isWaitingForChunk(msg.getFileId(), msg.getChunkNo()))
@@ -38,7 +39,7 @@ public class RestoreChannelHandler extends Handler {
 
                     // only arrives here if the peer is in version 1.1 and the message is 1.1 (and is waiting for chunk)
 
-                    System.out.println("Connecting to TCP: " + senderAddress.getHostAddress() + ":" + Integer.parseInt(new String(msg.getBody())));
+                    Logger.log("Connecting to TCP: " + senderAddress.getHostAddress() + ":" + Integer.parseInt(new String(msg.getBody())));
                     Socket socket = new Socket(senderAddress, Integer.parseInt(new String(msg.getBody())));
 
                     byte[] chunkData = socket.getInputStream().readAllBytes();
@@ -49,12 +50,11 @@ public class RestoreChannelHandler extends Handler {
 
                     break;
                 default:
-                    System.err.println("Received wrong message in RestoreChannelHandler! " + msg);
+                    Logger.error("Received wrong message in RestoreChannelHandler! " + msg);
                     break;
             }
         } catch (Exception e) {
-            System.err.println("In restore channel handler.");
-            e.printStackTrace();
+            Logger.error(e, true);
         }
     }
 }

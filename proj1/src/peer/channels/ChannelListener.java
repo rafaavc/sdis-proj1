@@ -11,6 +11,7 @@ import channels.handlers.Handler;
 import exceptions.ArgsException;
 import messages.Message;
 import messages.MessageParser;
+import utils.Logger;
 
 public class ChannelListener extends Thread {
     private final MulticastChannel channel;
@@ -43,20 +44,22 @@ public class ChannelListener extends Thread {
                         try 
                         {
                             Message msg = MessageParser.parse(data, packet.getLength());
-        
+                            
+                            Logger.log(channel.getType(), msg);
+
                             if (msg.getSenderId().equals(action.getConfiguration().getPeerId())) return;
                             action.execute(msg, packet.getAddress());
                         } 
                         catch(ArgsException e) 
                         {
-                            System.err.println(e.getMessage());
+                            Logger.error(e, false);
                         }
                     }
                 }, 0, TimeUnit.MILLISECONDS);
             }
         } catch (IOException e) {
             if (!(e instanceof SocketException)) {
-                System.err.println("IOException in ChannelListener of channel " + this.channel + ": " + e.getMessage());
+                Logger.error("IOException in ChannelListener of channel " + this.channel + ": " + e.getMessage());
             }
         }
     }

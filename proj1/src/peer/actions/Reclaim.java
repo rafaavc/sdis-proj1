@@ -11,6 +11,8 @@ import configuration.ProtocolVersion;
 import files.FileManager;
 import messages.MessageFactory;
 import state.ChunkInfo;
+import utils.Logger;
+import utils.Result;
 
 public class Reclaim {
     private final PeerConfiguration configuration;
@@ -31,7 +33,7 @@ public class Reclaim {
             // calcular espaço ocupado
             float occupiedSpace = configuration.getPeerState().getOccupiedStorage();
 
-            System.out.println("Occupied space: " + occupiedSpace);
+            Logger.log("Occupied space: " + occupiedSpace);
 
             if (availableSpaceDesired < 0 || availableSpaceDesired >= occupiedSpace) return;
 
@@ -47,7 +49,7 @@ public class Reclaim {
                 }
             });
 
-            System.out.println("Chunks ordered: " + peerChunks);
+            // Logger.log("Chunks ordered: " + peerChunks);
 
             List<ChunkInfo> chunksToRemove = new ArrayList<>();
 
@@ -59,7 +61,7 @@ public class Reclaim {
                 peerChunks.remove(0);
             }
 
-            System.out.println("Chunks to remove: " + chunksToRemove);
+            // Logger.log("Chunks to remove: " + chunksToRemove);
 
             FileManager fileManager = new FileManager(this.configuration.getRootDir());
 
@@ -72,10 +74,12 @@ public class Reclaim {
                 this.configuration.getPeerState().deleteChunk(chunk);
             }
 
-            future.complete(new Result(true, "Reclaimed space successfuly."));
+            String msg = "Reclaimed space successfuly.";
+            Logger.log(msg);
+            future.complete(new Result(true, msg));
 
         } catch(Exception e) {
-            System.err.println(e.getMessage());
+            Logger.error(e, future);
         }
     }
 }

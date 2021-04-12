@@ -10,6 +10,7 @@ import messages.Message;
 import messages.MessageFactory;
 import messages.trackers.StoredTracker;
 import state.ChunkInfo;
+import utils.Logger;
 
 public class VanillaBackupStrategy extends BackupStrategy {
     public VanillaBackupStrategy(PeerConfiguration configuration) throws ArgsException {
@@ -20,7 +21,7 @@ public class VanillaBackupStrategy extends BackupStrategy {
         FileManager files = new FileManager(configuration.getRootDir());
         StoredTracker storedTracker = StoredTracker.getNewTracker();
         
-        System.out.println("Storing chunk.");
+        Logger.log("Storing chunk.");
 
         StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(this.configuration.getPeerId()));
         ChunkInfo chunk = new ChunkInfo(msg.getFileId(), (float)(msg.getBody().length / 1000.), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
@@ -57,7 +58,7 @@ public class VanillaBackupStrategy extends BackupStrategy {
                 } 
                 catch(Exception e) 
                 {
-                    System.err.println(e.getMessage());
+                    Logger.error(e, true);
                 }
             }
         }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);

@@ -3,7 +3,7 @@ package configuration;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import actions.Result;
+import utils.Result;
 import state.PeerState;
 
 public interface ClientInterface extends Remote {

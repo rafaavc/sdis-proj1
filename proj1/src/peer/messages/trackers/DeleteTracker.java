@@ -3,6 +3,8 @@ package messages.trackers;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import utils.Logger;
+
 public class DeleteTracker {
     private static final Queue<DeleteTracker> deleteTrackers = new ConcurrentLinkedQueue<>();
     private final Queue<String> deletesReceived = new ConcurrentLinkedQueue<>();
@@ -26,12 +28,18 @@ public class DeleteTracker {
     }
 
     public synchronized boolean hasReceivedDelete(String fileId) {
-        if (!active) System.err.println("called hasReceivedDelete on inactive DeleteTracker");
+        if (!active) {
+            Logger.error("called hasReceivedDelete on inactive DeleteTracker");
+            System.exit(1);
+        }
         return this.deletesReceived.contains(fileId);
     }
 
     private synchronized void addDelete(String fileId) {
-        if (!active) System.err.println("called addDelete on inactive DeleteTracker");
+        if (!active) {
+            Logger.error("called addDelete on inactive DeleteTracker");
+            System.exit(1);
+        }
         synchronized (deletesReceived) {
             if (!this.deletesReceived.contains(fileId)) this.deletesReceived.add(fileId);
         }

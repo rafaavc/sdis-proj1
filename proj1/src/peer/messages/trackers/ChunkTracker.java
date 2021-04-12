@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+import utils.Logger;
+
 public class ChunkTracker {
     private final ConcurrentMap<String, List<Integer>> chunksReceived = new ConcurrentHashMap<>(); 
     private final ConcurrentMap<String, Map<Integer, byte[]>> chunksDataReceived = new ConcurrentHashMap<>();
@@ -50,7 +52,7 @@ public class ChunkTracker {
 
     public synchronized boolean hasReceivedAllChunksData(String fileId) {
         if (!chunksDataReceived.containsKey(fileId)) {
-            System.err.println("I have no entry for file with id '" + fileId + "' in the chunk reception map (not waiting for it)");
+            Logger.error("I have no entry for file with id '" + fileId + "' in the chunk reception map (not waiting for it)");
             return true;
         }
         return !chunksDataReceived.get(fileId).values().contains(null);  // has received all chunks if no chunk entry has the null value

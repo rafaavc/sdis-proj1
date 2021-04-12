@@ -10,6 +10,8 @@ import files.Chunk;
 import messages.trackers.StoredTracker;
 import state.ChunkPair;
 import state.FileInfo;
+import utils.Logger;
+import utils.Result;
 
 public class ChunksBackup implements Runnable {
     private final Map<Chunk, byte[]> chunksToSend;
@@ -49,7 +51,7 @@ public class ChunksBackup implements Runnable {
         }
         catch(Exception e) 
         {
-            System.err.println(e.getMessage());
+            Logger.error(e, future);
             return;
         }
 
@@ -59,7 +61,6 @@ public class ChunksBackup implements Runnable {
                 Map<Chunk, byte[]> chunksToSendCopy = new HashMap<>(chunksToSend);
 
                 for (Chunk chunk : chunksToSendCopy.keySet()) {
-                    System.out.println("Checking stored count = " + storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo()));
                     int replicationDegree = storedTracker.getStoredCount(chunk.getFileId(), chunk.getChunkNo());
                     
                     if (replicationDegree >= desiredReplicationDegree) {
@@ -87,14 +88,14 @@ public class ChunksBackup implements Runnable {
                             StoredTracker.removeTracker(storedTracker);
 
                             String msg = "Wasn't able to backup file: chunk " + chunk.getChunkNo() + " was not backed up by any peers";
-                            System.err.println(msg);
+                            Logger.error(msg);
                             future.complete(new Result(false, msg));
                             return;
                         }
                         info.addChunk(new ChunkPair(chunk.getChunkNo(), replicationDegree));
 
                         String msg = "Couldn't backup chunk " + chunk.getChunkNo() + " with the desired replication degree. Perceived = " + replicationDegree;
-                        System.out.println(msg);
+                        Logger.log(msg);
 
                         builder.append(msg);
                         builder.append("\n");
@@ -103,7 +104,7 @@ public class ChunksBackup implements Runnable {
                 StoredTracker.removeTracker(storedTracker);
 
                 String msg = "Backed up successfully!";
-                System.out.println(msg);
+                Logger.log(msg);
                 builder.append(msg);
                 future.complete(new Result(true, builder.toString()));
             }

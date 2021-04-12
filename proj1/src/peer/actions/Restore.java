@@ -10,6 +10,8 @@ import messages.MessageFactory;
 import messages.trackers.ChunkTracker;
 import state.ChunkPair;
 import state.FileInfo;
+import utils.Logger;
+import utils.Result;
 
 public class Restore {
     private final PeerConfiguration configuration;
@@ -43,8 +45,7 @@ public class Restore {
         } 
         catch(Exception e) 
         {
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            Logger.error(e, future);
         }
     }
 }

@@ -16,7 +16,8 @@ import actions.Backup;
 import actions.CheckDeleted;
 import actions.Delete;
 import actions.Restore;
-import actions.Result;
+import utils.Logger;
+import utils.Result;
 import actions.Reclaim;
 
 public class Peer extends UnicastRemoteObject implements ClientInterface {
@@ -26,14 +27,14 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public Peer(PeerConfiguration configuration) throws Exception {
         this.configuration = configuration;
 
-        System.out.println(this.getPeerState());
+        Logger.log(this.getPeerState());
 
         for (MulticastChannel channel : this.configuration.getChannels())
         {
             new ChannelListener(channel, Handler.get(this.configuration, channel.getType()), configuration.getThreadScheduler()).start();
         }
 
-        System.out.println("Running on protocol version " + configuration.getProtocolVersion() + ". Ready!");
+        Logger.log("Running on protocol version " + configuration.getProtocolVersion() + ". Ready!");
 
         if (configuration.getProtocolVersion().equals("1.1")) {
             new CheckDeleted(configuration).execute();
@@ -53,7 +54,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         if (getPeerState().ownsFileWithName(fileName)) 
         {
             String fileId = getPeerState().getFileId(fileName);
-            System.out.println("The file " + fileName + " had an older version. Deleting it.");
+            Logger.log("The file " + fileName + " had an older version. Deleting it.");
 
             new Delete(new CompletableFuture<>(), configuration, fileId).execute();
         }
@@ -68,7 +69,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         }
         catch(Exception e)
         {
-            System.err.println(e.getStackTrace());
+            Logger.error(e, true);
         }
         return null;
     }
@@ -76,7 +77,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public Result restore(String fileName) throws RemoteException {
         if (!getPeerState().ownsFileWithName(fileName)) 
         {
-            System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+            Logger.error("The file '" + fileName + "' doesn't exist in my history.");
             return new Result(false, "The file '" + fileName + "' doesn't exist in the peer's history.");
         }
         CompletableFuture<Result> f = new CompletableFuture<>();
@@ -88,7 +89,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         }
         catch(Exception e)
         {
-            System.err.println(e.getStackTrace());
+            Logger.error(e, true);
         }
         return null;
     }
@@ -96,7 +97,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     public Result delete(String fileName) throws RemoteException {
         if (!getPeerState().ownsFileWithName(fileName))
         {
-            System.err.println("The file '" + fileName + "' doesn't exist in my history.");
+            Logger.error("The file '" + fileName + "' doesn't exist in my history.");
             return new Result(false, "The file '" + fileName + "' doesn't exist in the peer's history.");
         }
         String fileId = getPeerState().getFileId(fileName);
@@ -109,7 +110,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         }
         catch(Exception e)
         {
-            System.err.println(e.getStackTrace());
+            Logger.error(e, true);
         }
         return null;
     }
@@ -124,7 +125,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
         }
         catch(Exception e)
         {
-            System.err.println(e.getStackTrace());
+            Logger.error(e, true);
         }
         return null;
     }
@@ -134,7 +135,7 @@ public class Peer extends UnicastRemoteObject implements ClientInterface {
     }
 
     public void hi() throws RemoteException {
-        System.out.println("Hi");
+        Logger.log("Hi");
     }
 }
 

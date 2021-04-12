@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
 import messages.MessageFactory;
+import utils.Logger;
+import utils.Result;
 
 public class Delete {
     private final PeerConfiguration configuration;
@@ -34,7 +36,7 @@ public class Delete {
             } 
             catch(Exception e) 
             {
-                System.err.println(e.getMessage());
+                Logger.error(e, future);
             }
             if (count < 5) configuration.getThreadScheduler().schedule(new DeleteIter(msg, count + 1), 500, TimeUnit.MILLISECONDS);
             else future.complete(new Result(true, "Sent delete 5 times."));
@@ -58,7 +60,7 @@ public class Delete {
         } 
         catch(Exception e) 
         {
-            System.err.println(e.getMessage());
+            Logger.error(e, future);
         }
     }
 }

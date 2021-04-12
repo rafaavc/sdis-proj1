@@ -11,6 +11,8 @@ import files.FileManager;
 import messages.trackers.ChunkTracker;
 import state.ChunkPair;
 import state.FileInfo;
+import utils.Logger;
+import utils.Result;
 
 public class ChunksRestore implements Runnable {
     private final Map<ChunkPair, byte[]> chunksToGet;
@@ -49,7 +51,7 @@ public class ChunksRestore implements Runnable {
         }
         catch(Exception e) 
         {
-            System.err.println(e.getMessage());
+            Logger.error(e, future);
             return;
         }
 
@@ -79,14 +81,14 @@ public class ChunksRestore implements Runnable {
                         builder.append("- " + chunk.getChunkNo() + "\n");
                     }
                     builder.append("\n");
-                    System.out.println(builder.toString());
+                    Logger.log(builder.toString());
                     future.complete(new Result(false, builder.toString()));
                     return;
                 }
 
                 List<byte[]> chunks = chunkTracker.getFileChunks(info.getFileId());
                 String msg = "Received " + chunks.size() + "/" + info.getChunks().size() + " chunks.";
-                System.out.println(msg);
+                Logger.log(msg);
                 future.complete(new Result(true, msg));
     
                 FileManager fileManager = new FileManager(configuration.getRootDir());
@@ -97,7 +99,7 @@ public class ChunksRestore implements Runnable {
                 } 
                 catch( Exception e)
                 {
-                    System.err.println(e.getMessage());
+                    Logger.error(e, future);
                 }
             }
         }, sleepAmount, TimeUnit.MILLISECONDS);

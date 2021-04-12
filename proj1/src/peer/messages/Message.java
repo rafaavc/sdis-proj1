@@ -126,7 +126,17 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message: " + version + " "+ messageType+ " "+ senderId + " "+ fileId + " "+ chunkNo;
+        List<String> headerComponents = getComponents();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Message:");
+
+        for (String component : headerComponents) {
+            builder.append(' ');
+            builder.append(component);
+        }
+
+        return builder.toString();
     }
 
     private List<String> getComponents() {

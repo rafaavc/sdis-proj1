@@ -11,6 +11,7 @@ import messages.Message;
 import messages.MessageFactory;
 import messages.trackers.StoredTracker;
 import state.ChunkInfo;
+import utils.Logger;
 
 public class EnhancedBackupStrategy extends BackupStrategy {
     private final ScheduledThreadPoolExecutor threadScheduler;
@@ -32,11 +33,11 @@ public class EnhancedBackupStrategy extends BackupStrategy {
 
                     // check if still has space because in the time interval that passed the peer may have received other backups
                     if (configuration.getPeerState().getMaximumStorage() != -1 && configuration.getPeerState().getStorageAvailable() < msg.getBodySizeKB()) {
-                        System.out.println("Not enough space available for backup.");
+                        Logger.log("Not enough space available for backup.");
                         return;
                     }
 
-                    System.out.println("Storing chunk.");
+                    Logger.log("Storing chunk.");
                     StoredTracker.addStoredCount(configuration.getPeerState(), msg.getFileId(), msg.getChunkNo(), Integer.parseInt(configuration.getPeerId()));
 
                     ChunkInfo chunk = new ChunkInfo(msg.getFileId(), msg.getBodySizeKB(), msg.getChunkNo(), storedTracker.getStoredCount(msg.getFileId(), msg.getChunkNo()), msg.getReplicationDeg());
@@ -62,7 +63,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                 } 
                 catch(Exception e) 
                 {
-                    System.err.println(e.getMessage());
+                    Logger.error(e, true);
                 }
             }
         }, configuration.getRandomDelay(400, 400), TimeUnit.MILLISECONDS); // this has will be executed after 400 + rand(400) ms, so that during the first 400 ms it received the STORED of the peers who already have the chunk backed up (which called the method below)
@@ -78,7 +79,7 @@ public class EnhancedBackupStrategy extends BackupStrategy {
                 } 
                 catch(Exception e) 
                 {
-                    System.err.println(e.getMessage());
+                    Logger.error(e, true);
                 }
             }
         }, configuration.getRandomDelay(400), TimeUnit.MILLISECONDS);
