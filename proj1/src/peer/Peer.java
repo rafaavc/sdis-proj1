@@ -4,7 +4,6 @@ import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import channels.ChannelListener;
 import channels.MulticastChannel;

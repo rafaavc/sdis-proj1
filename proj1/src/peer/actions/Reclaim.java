@@ -35,7 +35,10 @@ public class Reclaim {
 
             Logger.log("Occupied space: " + occupiedSpace);
 
-            if (availableSpaceDesired < 0 || availableSpaceDesired >= occupiedSpace) return;
+            if (availableSpaceDesired < 0 || availableSpaceDesired >= occupiedSpace) {
+                future.complete(new Result(true, "Changed available space as requested."));
+                return;
+            }
 
             List<ChunkInfo> peerChunks = configuration.getPeerState().getChunks();
 

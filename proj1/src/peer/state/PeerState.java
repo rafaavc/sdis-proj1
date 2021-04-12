@@ -1,7 +1,7 @@
 package state;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import files.FileManager;
 import utils.Logger;
 
 
@@ -21,7 +22,7 @@ import utils.Logger;
 public class PeerState implements Serializable {
     private static final long serialVersionUID = 3474820596488159542L;
 
-    private static String stateFileName = "metadata";
+    public static String stateFileName = "metadata";
     private final String dir;
 
     private final ConcurrentMap<String, FileInfo> files = new ConcurrentHashMap<>();
@@ -189,18 +190,19 @@ public class PeerState implements Serializable {
     }
 
     public void write() throws IOException {
-        String filePath = this.dir + "/" + stateFileName;
-
         File f = new File(this.dir);
         if (!f.exists()) f.mkdirs();
 
-        FileOutputStream fout = new FileOutputStream(filePath);
-        ObjectOutputStream out = new ObjectOutputStream(fout);
+        ByteArrayOutputStream bis = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(bis);
         synchronized (deletedFiles) {
             out.writeObject(this);
         }
-  
+        out.flush();
         out.close();
+
+        byte[] data = bis.toByteArray();
+        FileManager.write(FileManager.peerStateChannel, data);
     }
 
     private void writeState() {

@@ -3,6 +3,7 @@ package utils;
 import java.io.Serializable;
 
 public class Result implements Serializable {
+    private static final long serialVersionUID = -1997059718009930688L;
     private final boolean success;
     private final String message;
     

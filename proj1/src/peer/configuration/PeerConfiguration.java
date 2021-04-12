@@ -1,6 +1,5 @@
 package configuration;
 
-import java.io.IOException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -12,6 +11,7 @@ import channels.handlers.strategies.RestoreStrategy;
 import channels.handlers.strategies.VanillaBackupStrategy;
 import channels.handlers.strategies.VanillaRestoreStrategy;
 import exceptions.ArgsException;
+import files.FileManager;
 import messages.trackers.ChunkTracker;
 import state.PeerState;
 
@@ -23,14 +23,17 @@ public class PeerConfiguration {
     private final ChunkTracker chunkTracker;
     private final ScheduledThreadPoolExecutor threadScheduler;
 
-    public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws ClassNotFoundException, IOException {
+    public PeerConfiguration(ProtocolVersion protocolVersion, String peerId, String serviceAccessPoint, MulticastChannel mc, MulticastChannel mdb, MulticastChannel mdr) throws Exception {
         this.protocolVersion = protocolVersion;
         this.peerId = peerId;
         this.serviceAccessPoint = serviceAccessPoint;
         this.mc = mc;
         this.mdb = mdb;
         this.mdr = mdr;
+
         this.state = PeerState.read(this.getRootDir());
+        FileManager.createPeerStateAsynchronousChannel(getRootDir());
+
         this.chunkTracker = new ChunkTracker();
         this.threadScheduler = new ScheduledThreadPoolExecutor(20);
     }
