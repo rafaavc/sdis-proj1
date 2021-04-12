@@ -31,7 +31,7 @@ public class PeerConfiguration {
         this.mdb = mdb;
         this.mdr = mdr;
 
-        this.state = PeerState.read(this.getRootDir());
+        this.state = PeerState.read(getRootDir());
         FileManager.createPeerStateAsynchronousChannel(getRootDir());
 
         this.chunkTracker = new ChunkTracker();
@@ -55,7 +55,7 @@ public class PeerConfiguration {
     }
 
     public String getRootDir() {
-        return this.peerId;
+        return "../filesystem/" + this.peerId;
     }
 
     public ProtocolVersion getProtocolVersion() {

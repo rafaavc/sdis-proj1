@@ -18,7 +18,7 @@ public class ChunkedFile {
     private final List<Chunk> chunks;
 
     public static String generateFileId(File file) throws IOException, NoSuchAlgorithmException {
-        BasicFileAttributes attr = Files.readAttributes(Path.of(file.getPath()), BasicFileAttributes.class);
+        BasicFileAttributes attr = Files.readAttributes(Path.of("../filesystem/" + file.getPath()), BasicFileAttributes.class);
 
         String original = file.getPath() + attr.lastModifiedTime() + attr.creationTime() + attr.size();
 

@@ -1,6 +1,5 @@
 #!/bin/sh
 
-mkdir -p filesystem
-cd filesystem
-java -cp "../gen" Main $@
+cd gen
+java Main $@
 

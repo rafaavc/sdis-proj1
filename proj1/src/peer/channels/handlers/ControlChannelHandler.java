@@ -30,7 +30,7 @@ public class ControlChannelHandler extends Handler {
     }
 
     public void execute(Message msg, InetAddress senderAddress) {
-        FileManager fileManager = new FileManager(this.configuration.getPeerId());
+        FileManager fileManager = new FileManager(this.configuration.getRootDir());
         ChunkTracker chunkTracker = configuration.getChunkTracker();
         ScheduledThreadPoolExecutor threadScheduler = configuration.getThreadScheduler();
 

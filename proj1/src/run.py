@@ -97,10 +97,10 @@ class PrintPeerStdout(Thread):
 
 
 def run_peer(peerId):
-    os.execvp("java", ["java", "-cp", "../gen", "Main", args.v, str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
+    os.execvp("java", ["java", "Main", args.v, str(peerId), "peer"+str(peerId), "224.0.0.1", "7099", "224.0.0.2", "7099", "224.0.0.3", "7099"])
 
 def start_peers():
-    os.chdir("filesystem")
+    os.chdir("gen")
     processes = []
     for i in range(args.n):
         r, w = os.pipe()

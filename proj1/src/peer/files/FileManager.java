@@ -23,7 +23,8 @@ public class FileManager {
     }
     
     public FileManager() {
-        this.rootDir = ".";
+        this.rootDir = "../filesystem";
+        createDir(rootDir);
     }
 
     public static void createPeerStateAsynchronousChannel(String rootDir) throws IOException {
@@ -103,9 +104,10 @@ public class FileManager {
 
     public void deleteFileChunks(String fileId) {
         File fileFolder = new File(this.rootDir + "/" + fileId);
-        if (!fileFolder.exists()) return;
 
-        for (File chunk : fileFolder.listFiles()) chunk.delete();
+        for (File chunk : fileFolder.listFiles()) {
+            chunk.delete();
+        }
 
         fileFolder.delete();
     }
