@@ -7,7 +7,6 @@ import java.net.SocketException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import channels.handlers.Handler;
-import exceptions.ArgsException;
 import messages.Message;
 import messages.MessageParser;
 import utils.Logger;

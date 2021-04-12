@@ -35,6 +35,7 @@ public class TestApp {
                         if (desiredReplicationDegree < 1 || desiredReplicationDegree > 9) throw new ArgsException(Type.REPLICATION_DEG, String.valueOf(desiredReplicationDegree));
                         
                         result = stub.backup(args[2], desiredReplicationDegree);
+                        if (result == null) Logger.error("[FAILURE]");
 
                     } catch(NumberFormatException e) {
                         Logger.error("The desired replication degree is not valid. It must be an integer in the inclusive range of 1 to 9.");
@@ -47,6 +48,7 @@ public class TestApp {
                         System.exit(1);
                     }
                     result = stub.delete(args[2]);
+                    if (result == null) Logger.error("[FAILURE]");
                     break;
                 case "RESTORE":
                     if (args.length < 3) {
@@ -54,6 +56,7 @@ public class TestApp {
                         System.exit(1);
                     }
                     result = stub.restore(args[2]);
+                    if (result == null) Logger.error("[FAILURE]");
                     break;
                 case "RECLAIM":
                     if (args.length < 3) {
@@ -61,6 +64,7 @@ public class TestApp {
                         System.exit(1);
                     }
                     result = stub.reclaim(Integer.parseInt(args[2]));
+                    if (result == null) Logger.error("[FAILURE]");
                     break;
                 case "STATE": 
                     Logger.log(stub.getPeerState().toString());

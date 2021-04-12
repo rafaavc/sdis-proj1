@@ -3,7 +3,6 @@ package actions;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import configuration.PeerConfiguration;
 import configuration.ProtocolVersion;
