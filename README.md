@@ -1,4 +1,4 @@
-# SDIS Project
+# Distributed Backup Service
 
 SDIS Project for group T6G12.
 

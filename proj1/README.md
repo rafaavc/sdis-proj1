@@ -1,2 +1,0 @@
-# Distributed Backup Service
-
